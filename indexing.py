@@ -2,6 +2,7 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModel
 import faiss
+import numpy as np
 
 ds = load_dataset("monology/pile-uncopyrighted", split="train")
 
@@ -18,6 +19,7 @@ data_loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
 for batch in data_loader:
     inputs = tokenizer(batch["text"], return_tensors="pt", padding=True, truncation=True)
     embeddings = model(**inputs).last_hidden_state[:, 0, :].detach().cpu().numpy()
+    embeddings = np.ascontiguousarray(embeddings.astype('float32'))
     index.add(embeddings)
 
 faiss.write_index(index, "/mnt/parscratch/users/ac1xwa/faiss/pile_index.faiss")
