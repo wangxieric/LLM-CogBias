@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModel
 import faiss
 
-ds = load_dataset("monology/pile-uncopyrighted")
+ds = load_dataset("monology/pile-uncopyrighted", split="train")
 
 # Load Contriever model and tokenizer
 tokenizer = AutoTokenizer.from_pretrained("facebook/contriever")
