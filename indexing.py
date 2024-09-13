@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModel
 import faiss
 import numpy as np
+from tqdm import tqdm
 
 ds = load_dataset("monology/pile-uncopyrighted", split="train")
 
@@ -16,7 +17,7 @@ index = faiss.IndexFlatL2(dimension)
 batch_size = 256
 data_loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
 
-for batch in data_loader:
+for idx, batch in enumerate(tqdm(data_loader)):
     inputs = tokenizer(batch["text"], return_tensors="pt", padding=True, truncation=True)
     embeddings = model(**inputs).last_hidden_state[:, 0, :].detach().cpu().numpy()
     embeddings = np.ascontiguousarray(embeddings.astype('float32'))
