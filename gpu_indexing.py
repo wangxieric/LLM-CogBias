@@ -29,8 +29,17 @@ gpu_resources = [faiss.StandardGpuResources() for _ in device_ids]
 # Setup Faiss for multi-GPU index creation (IndexFlatL2 for brute-force search on GPU)
 cpu_index = faiss.IndexFlatL2(dimension)
 
-# Use `index_cpu_to_gpu_multiple` to split the index across multiple GPUs
-gpu_index = faiss.index_cpu_to_gpu_multiple(cpu_index, gpu_resources, device_ids)
+# Create a list of GpuResources and a list of GPU device IDs
+gpu_resources_list = faiss.GpuResourcesVector()
+for res in gpu_resources:
+    gpu_resources_list.push_back(res)
+
+gpu_device_list = faiss.IntVector()
+for dev in device_ids:
+    gpu_device_list.push_back(dev)
+
+# Move the index to multiple GPUs
+gpu_index = faiss.index_cpu_to_gpu_multiple(gpu_resources_list, gpu_device_list, cpu_index)
 
 batch_size = 256
 data_loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
