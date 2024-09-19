@@ -3,7 +3,7 @@ import pandas as pd
 
 def flatten_metadata(example):
     # Extract 'pile_set_name' from 'metadata' and add it as a separate column
-    example['pile_set_name'] = example['metadata']['pile_set_name']
+    example['pile_set_name'] = example['meta']['pile_set_name']
     return example
 
 # Load dataset
