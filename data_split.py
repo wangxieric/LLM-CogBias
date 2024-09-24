@@ -16,14 +16,22 @@ ds = load_dataset("monology/pile-uncopyrighted", split="train")
 # Flatten metadata
 flatten_ds = ds.map(flatten_metadata)
 
-# Convert the dataset to a pandas DataFrame
-df = flatten_ds.to_pandas()  # Correct conversion to a DataFrame
+# Extract the columns into lists
+text_data = flatten_ds['text']
+pile_set_names = flatten_ds['pile_set_name']
+
+# Create a pandas DataFrame manually
+df = pd.DataFrame({
+    'text': text_data,
+    'pile_set_name': pile_set_names
+})
 
 # Step 2: Split dataset based on the pile_set_name in the metadata
 groups = df.groupby('pile_set_name')
 
 # Step 3: Save each split to a CSV file
 for pile_set_name, group in groups:
-    group.to_csv(f'/mnt/parscratch/users/ac1xwa/pythia/pre-train_data/{pile_set_name}.csv', index=False)
+    if pd.notna(pile_set_name): 
+        group.to_csv(f'/mnt/parscratch/users/ac1xwa/pythia/pre-train_data/{pile_set_name}.csv', index=False)
 
 print("Dataset split and saved to CSV files.")
