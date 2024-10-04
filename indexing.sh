@@ -9,4 +9,6 @@ export JAVA_HOME="/mnt/parscratch/users/ac1xwa/jdk-21.0.2"
 export PATH=$JAVA_HOME/bin:$PATH
 export HYDRA_FULL_ERROR=1
 export HF_HOME="/mnt/parscratch/users/ac1xwa/huggingface"
-/mnt/parscratch/users/ac1xwa/anaconda/.envs/pythia/bin/python gpu_indexing.py 
+module load Anaconda3/2022.05
+source activate pythia
+python indexing.py 

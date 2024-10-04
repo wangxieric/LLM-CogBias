@@ -1,29 +1,31 @@
-from datasets import load_dataset
-from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, AutoModel
-import faiss
-import numpy as np
-from tqdm import tqdm
+import pandas as pd
+import pyterrier as pt
+from datetime import datetime
+categories = ['Arxiv', 'Enron Emails', 'FreeLaw', 'Gutenberg', 'NIH ExPorter', 'Pile-CC', 
+              'PubMed Central', 'Ubuntu IRC', 'Wikipedia (en)', 'DM Mathematics', 'EuroParl', 
+              'Github', 'HackerNews', 'PhilPapers', 'PubMed Abstracts', 'StackExchange', 'USPTO Backgrounds']
 
-ds = load_dataset("monology/pile-uncopyrighted", split="train")
+# Load dataset & indexing using pyterrier
+# Initialize PyTerrier
+if not pt.started():
+    pt.init()
 
-# Load Contriever model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained("facebook/contriever")
-model = AutoModel.from_pretrained("facebook/contriever")
-
-dimension = 768 # Dimension of the embeddings using contriever model
-index = faiss.IndexFlatL2(dimension)
-
-batch_size = 256
-data_loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
-
-for idx, batch in enumerate(tqdm(data_loader)):
-    inputs = tokenizer(batch["text"], return_tensors="pt", padding=True, truncation=True)
-    embeddings = model(**inputs).last_hidden_state[:, 0, :].detach().cpu().numpy()
-    embeddings = np.ascontiguousarray(embeddings.astype('float32'))
-    index.add(embeddings)
-
-faiss.write_index(index, "/mnt/parscratch/users/ac1xwa/faiss/pile_index.faiss")
-
-
+# Load dataset
+dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data"
+for category in categories:
+    # read data in csv format
+    ds = pd.read_csv(f"{dataset_dir}/{category}.csv")
+    columns = ds.columns # text, pile_set_name
+    print(f"Columns: {columns}")
+    # add docno and combined with category name
+    ds['docno'] = ds.index  # add docno 
+    ds['docno'] = ds['docno'].apply(lambda x: f"{category}-{x}")
+    ds['docno'] = ds['docno'].astype(str)
+    print("Finish adding docno ", datetime.now())
+    # Drop pile_set_name column
+    ds = ds.drop(columns=['pile_set_name'])
+    iter_indexer = pt.IterDictIndexer(f"{dataset_dir}/index/{category}")
+    indexref = iter_indexer.index(ds.to_dict(orient='records'))
+    print(f"Index saved at: {indexref}")
+    print(f"Finish indexing {category} ", datetime.now())
 
