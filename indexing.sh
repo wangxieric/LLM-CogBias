@@ -11,4 +11,4 @@ export HYDRA_FULL_ERROR=1
 export HF_HOME="/mnt/parscratch/users/ac1xwa/huggingface"
 module load Anaconda3/2022.05
 source activate pythia
-python indexing.py 
+python data_split.py 
