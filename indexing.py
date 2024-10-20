@@ -1,7 +1,7 @@
 import pandas as pd
 import pyterrier as pt
 from datetime import datetime
-categories = ['Arxiv', 'Enron Emails', 'FreeLaw', 'Gutenberg', 'NIH ExPorter', 'Pile-CC', 
+categories = ['ArXiv', 'Enron Emails', 'FreeLaw', 'Gutenberg (PG-19)', 'NIH ExPorter', 'Pile-CC', 
               'PubMed Central', 'Ubuntu IRC', 'Wikipedia (en)', 'DM Mathematics', 'EuroParl', 
               'Github', 'HackerNews', 'PhilPapers', 'PubMed Abstracts', 'StackExchange', 'USPTO Backgrounds']
 
