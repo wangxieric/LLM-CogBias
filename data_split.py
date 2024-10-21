@@ -36,7 +36,7 @@ for example in tqdm(flatten_ds, desc="Processing examples", unit="example"):
             csv_writer.writerow(['text','pile_set_name'])
 
         # Write the row to the corresponding file
-        csv.writerow([text, pile_set_name])
+        csv_writer.writerow([text, pile_set_name])
 
 # Close all open file handles
 for handle in file_handles.values():
