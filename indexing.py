@@ -15,6 +15,7 @@ dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data"
 for category in categories:
     # read data in csv format
     ds = pd.read_csv(f"{dataset_dir}/{category}.csv")
+    print(ds.shape)
     columns = ds.columns # text, pile_set_name
     print(f"Columns: {columns}")
     # add docno and combined with category name
