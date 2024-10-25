@@ -34,7 +34,9 @@ for example in tqdm(flatten_ds, desc="Processing examples", unit="example"):
             
             # Write header row for the first time
             csv_writer.writerow(['text','pile_set_name'])
-
+        else:
+            csv_writer = csv.writer(file_handles[pile_set_name])
+            
         # Write the row to the corresponding file
         csv_writer.writerow([text, pile_set_name])
 

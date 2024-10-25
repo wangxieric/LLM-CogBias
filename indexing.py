@@ -11,7 +11,7 @@ if not pt.started():
     pt.init()
 
 # Load dataset
-dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data"
+dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
 for category in categories:
     # read data in csv format
     ds = pd.read_csv(f"{dataset_dir}/{category}.csv")
