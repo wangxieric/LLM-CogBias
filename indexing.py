@@ -1,6 +1,9 @@
 import pandas as pd
 import pyterrier as pt
 from datetime import datetime
+import shutil
+import os
+
 categories = ['ArXiv', 'Enron Emails', 'FreeLaw', 'Gutenberg (PG-19)', 'NIH ExPorter', 'Pile-CC', 
               'PubMed Central', 'Ubuntu IRC', 'Wikipedia (en)', 'DM Mathematics', 'EuroParl', 
               'Github', 'HackerNews', 'PhilPapers', 'PubMed Abstracts', 'StackExchange', 'USPTO Backgrounds']
@@ -40,29 +43,53 @@ if not pt.started():
 # OOM error handling via chunking
 
 dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
+index_base_path = f"{dataset_dir}/index"
 chunk_size = 10000  # Adjust based on memory availability
 
 for category in categories:
-    index_path = f"{dataset_dir}/index/{category}"
-    iter_indexer = pt.IterDictIndexer(index_path)
-    print(f"Indexing {category}...")
+    # Path to the existing index
+    existing_index_path = f"{index_base_path}/{category}"
+    
+    # Load the existing index if it exists
+    if pt.Files.exists(existing_index_path):
+        print(f"Loading existing index at {existing_index_path}")
+        existing_index = pt.IndexFactory.of(existing_index_path)
+    else:
+        print(f"Creating a new index for {category}")
+        existing_index = None
 
+    # Temporary path for new documents
+    temp_index_path = f"{index_base_path}/temp_{category}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    os.makedirs(temp_index_path, exist_ok=True)
+    iter_indexer = pt.IterDictIndexer(temp_index_path)
+
+    # Index new documents in chunks
     for chunk_idx, ds_chunk in enumerate(pd.read_csv(f"{dataset_dir}/{category}.csv", chunksize=chunk_size)):
-        print(f"Processing chunk {chunk_idx} with shape: {ds_chunk.shape}")
-        
-        # Filter out rows where 'text' is empty or only whitespace
+        print(f"Processing chunk {chunk_idx} for {category}")
+
+        # Filter out empty or null text rows
         ds_chunk = ds_chunk[ds_chunk['text'].notnull() & ds_chunk['text'].str.strip().astype(bool)]
         
         # Add 'docno' column
         ds_chunk['docno'] = ds_chunk.index + (chunk_idx * chunk_size)
         ds_chunk['docno'] = ds_chunk['docno'].apply(lambda x: f"{category}-{x}")
-        ds_chunk['docno'] = ds_chunk['docno'].astype(str)
         
         # Drop unnecessary columns
         ds_chunk = ds_chunk.drop(columns=['pile_set_name'])
+        
+        # Index this chunk to the temporary index
+        iter_indexer.index(ds_chunk.to_dict(orient='records'))
 
-        # Index each filtered chunk
-        indexref = iter_indexer.index(ds_chunk.to_dict(orient='records'))
-        print(f"Chunk {chunk_idx} indexed at {datetime.now()}")
+    # Merge temporary index with existing index if it exists
+    if existing_index:
+        print(f"Merging {temp_index_path} into existing index at {existing_index_path}")
+        pt.IndexMerger([existing_index, temp_index_path]).merge(existing_index_path)
+    else:
+        print(f"Copying {temp_index_path} to {existing_index_path} as the initial index")
+        shutil.move(temp_index_path, existing_index_path)
+    
+    # Clean up temporary index directory
+    if os.path.exists(temp_index_path):
+        shutil.rmtree(temp_index_path)
 
-    print(f"Finished indexing {category} at {index_path} at {datetime.now()}")
+    print(f"Finished updating index for {category} at {existing_index_path} at {datetime.now()}")
