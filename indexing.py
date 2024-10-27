@@ -15,9 +15,15 @@ dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
 for category in categories:
     # read data in csv format
     ds = pd.read_csv(f"{dataset_dir}/{category}.csv")
-    print(ds.shape)
+    print(f"Original shape: {ds.shape}")
+    
+    # Filter out rows where 'text' is empty or only whitespace
+    ds = ds[ds['text'].notnull() & ds['text'].str.strip().astype(bool)]
+    print(f"Filtered shape (no empty documents): {ds.shape}")
+
     columns = ds.columns # text, pile_set_name
     print(f"Columns: {columns}")
+    
     # add docno and combined with category name
     ds['docno'] = ds.index  # add docno 
     ds['docno'] = ds['docno'].apply(lambda x: f"{category}-{x}")
