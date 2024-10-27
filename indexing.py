@@ -51,7 +51,7 @@ for category in categories:
     existing_index_path = f"{index_base_path}/{category}"
     
     # Load the existing index if it exists
-    if pt.Files.exists(existing_index_path):
+    if os.path.exists(existing_index_path):
         print(f"Loading existing index at {existing_index_path}")
         existing_index = pt.IndexFactory.of(existing_index_path)
     else:
