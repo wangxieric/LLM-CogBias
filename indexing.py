@@ -1,10 +1,13 @@
 import pandas as pd
 import pyterrier as pt
 from datetime import datetime
-import shutil
-import os
+import gc
 
-categories = ['ArXiv', 'Enron Emails', 'FreeLaw', 'Gutenberg (PG-19)', 'NIH ExPorter', 'Pile-CC', 
+# categories = ['ArXiv', 'Enron Emails', 'FreeLaw', 'Gutenberg (PG-19)', 'NIH ExPorter', 'Pile-CC', 
+#               'PubMed Central', 'Ubuntu IRC', 'Wikipedia (en)', 'DM Mathematics', 'EuroParl', 
+#               'Github', 'HackerNews', 'PhilPapers', 'PubMed Abstracts', 'StackExchange', 'USPTO Backgrounds']
+
+categories = ['Pile-CC', 
               'PubMed Central', 'Ubuntu IRC', 'Wikipedia (en)', 'DM Mathematics', 'EuroParl', 
               'Github', 'HackerNews', 'PhilPapers', 'PubMed Abstracts', 'StackExchange', 'USPTO Backgrounds']
 
@@ -12,6 +15,17 @@ categories = ['ArXiv', 'Enron Emails', 'FreeLaw', 'Gutenberg (PG-19)', 'NIH ExPo
 # Initialize PyTerrier
 if not pt.started():
     pt.init()
+
+
+def document_generator(df, category, batch_size=10000):
+    for i in range(0, len(df), batch_size):
+        batch = df.iloc[i:i+batch_size]
+        for _, row in batch.iterrows():
+            yield {
+                'docno': f"{category}-{row.name}",
+                'text': row['text'][:4096]  # Limit text to 4096 characters
+            }
+        gc.collect()  # Force garbage collection after each batch
 
 # # Load dataset
 dataset_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
@@ -35,10 +49,13 @@ for category in categories:
     # Drop pile_set_name column
     ds = ds.drop(columns=['pile_set_name'])
     iter_indexer = pt.IterDictIndexer(f"{dataset_dir}/index/{category}")
-    indexref = iter_indexer.index(ds.to_dict(orient='records'))
+    indexref = iter_indexer.index(document_generator(ds, category))
     print(f"Index saved at: {indexref}")
     print(f"Finish indexing {category} ", datetime.now())
 
+    # Clear memory
+    del ds, iter_indexer
+    gc.collect()
 
 # # OOM error handling via chunking
 
