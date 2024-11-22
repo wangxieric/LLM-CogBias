@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
     seed = 42
     max_length = get_max_length(model)
-    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(tokenizer, max_length, seed, dataset)
+    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed)
         
     ################################################################################
     # QLoRA parameters
