@@ -1,6 +1,8 @@
 import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128"
 from functools import partial
 import torch
+torch.cuda.empty_cache()
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
@@ -9,6 +11,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     DataCollatorForLanguageModeling,
+    DataCollatorWithPadding
 )
 import bitsandbytes as bnb
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel, AutoPeftModelForCausalLM
@@ -64,7 +67,7 @@ def preprocess_for_next_token_prediction(sample, tokenizer, max_length):
     :param max_length: Maximum sequence length for the model
     """
     # Tokenize the text column and create labels for next-token prediction
-    encoding = tokenizer(sample["text"], truncation=True, max_length=max_length)
+    encoding = tokenizer(sample["text"], truncation=True, max_length=max_length, padding="max_length")
     sample["input_ids"] = encoding["input_ids"]
     sample["attention_mask"] = encoding["attention_mask"]
     sample["labels"] = encoding["input_ids"].copy()  # Copy input_ids as labels for next-token prediction
@@ -215,7 +218,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
             output_dir = output_dir,
             optim = optim
         ),
-        data_collator= DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+        data_collator= DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False, pad_to_multiple_of=8)
     )
 
     model.config.use_cache = False
@@ -245,7 +248,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
 if __name__ == "__main__":
 
     # Transformer parameters
-    model_name = "meta-llama/Meta-Llama-3-8B"
+    model_name = "meta-llama/Llama-3.2-1B"
 
     # Bitsandbytes parameters
     # Activate 4-bit precision base model loading
@@ -262,7 +265,7 @@ if __name__ == "__main__":
     model, tokenizer = load_model(model_name, bnb_config)
 
     # Load dataset
-    dataset_name = "xx.csv"
+    dataset_name = "example.csv"
     dataset = load_dataset('csv', data_files=dataset_name, split='train')   
 
     print(f'Number of prompts: {len(dataset)}')
@@ -277,10 +280,10 @@ if __name__ == "__main__":
     ################################################################################
 
     # LoRA attention dimension
-    lora_r = 16
+    lora_r = 4
 
     # Alpha parameter for LoRA scaling
-    lora_alpha = 64
+    lora_alpha = 32
 
     # Dropout probability for LoRA layers
     lora_dropout = 0.1
@@ -299,10 +302,10 @@ if __name__ == "__main__":
     output_dir = "./fine_tune_llama2_xx"
 
     # Batch size per GPU for training
-    per_device_train_batch_size = 8
+    per_device_train_batch_size = 1
 
     # Number of update steps to accumulate the gradients for
-    gradient_accumulation_steps = 4
+    gradient_accumulation_steps = 16
 
     # Initial learning rate (AdamW optimizer)
     learning_rate = 2e-4
