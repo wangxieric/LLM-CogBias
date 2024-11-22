@@ -184,7 +184,7 @@ def print_trainable_parameters(model, use_4bit = False):
 
 def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha, 
               lora_dropout, bias, task_type, per_device_train_batch_size, 
-              gradient_accumulation_steps, warmup_steps, max_steps, 
+              gradient_accumulation_steps, warmup_steps, num_train_epochs, 
               learning_rate, fp16, logging_steps, output_dir, optim):
     
     # Enable gradient checkpointing to reduce memory usage
@@ -211,7 +211,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
             per_device_train_batch_size = per_device_train_batch_size,
             gradient_accumulation_steps = gradient_accumulation_steps,
             warmup_steps = warmup_steps,
-            max_steps = max_steps,
+            num_train_epochs = num_train_epochs,
             learning_rate = learning_rate,
             fp16 = fp16,
             logging_steps = logging_steps,
@@ -248,7 +248,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
 if __name__ == "__main__":
 
     # Transformer parameters
-    model_name = "meta-llama/Llama-3.2-1B"
+    model_name = "EleutherAI/gpt-neo-125M"
 
     # Bitsandbytes parameters
     # Activate 4-bit precision base model loading
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     ################################################################################
 
     # LoRA attention dimension
-    lora_r = 4
+    lora_r = 16
 
     # Alpha parameter for LoRA scaling
     lora_alpha = 32
@@ -308,13 +308,14 @@ if __name__ == "__main__":
     gradient_accumulation_steps = 16
 
     # Initial learning rate (AdamW optimizer)
-    learning_rate = 2e-4
+    learning_rate = 1e-4
 
     # Optimizer to use
     optim = "paged_adamw_32bit"
 
     # Number of training steps (overrides num_train_epochs)
     max_steps = 4000
+    num_train_epochs = 1
 
     # Linear warmup steps from 0 to learning_rate
     warmup_steps = 2
@@ -336,7 +337,7 @@ if __name__ == "__main__":
       per_device_train_batch_size,
       gradient_accumulation_steps,
       warmup_steps,
-      max_steps,
+      num_train_epochs,
       learning_rate,
       fp16,
       logging_steps,
