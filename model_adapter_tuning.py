@@ -248,7 +248,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
 if __name__ == "__main__":
 
     # Transformer parameters
-    model_name = "EleutherAI/gpt-neo-125M"
+    model_name = "meta-llama/Meta-Llama-3-8B"
 
     # Bitsandbytes parameters
     # Activate 4-bit precision base model loading
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     model, tokenizer = load_model(model_name, bnb_config)
 
     # Load dataset
-    dataset_name = "example.csv"
+    dataset_name = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"
     dataset = load_dataset('csv', data_files=dataset_name, split='train')   
 
     print(f'Number of prompts: {len(dataset)}')
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     ################################################################################
 
     # Output directory where the model predictions and checkpoints will be stored
-    output_dir = "./fine_tune_llama2_xx"
+    output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
 
     # Batch size per GPU for training
     per_device_train_batch_size = 1
