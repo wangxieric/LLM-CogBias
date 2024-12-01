@@ -83,13 +83,39 @@ def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length,
     :param max_length: Max token length for inputs
     :param seed: Seed for shuffling dataset
     """
-    # Apply the preprocessing function to tokenize and set labels for next-token prediction
-    dataset = dataset.map(lambda sample: preprocess_for_next_token_prediction(sample, tokenizer, max_length), batched=True)
+    # Remove any null or empty texts
+    dataset = dataset.filter(lambda x: x['text'] is not None and len(x['text'].strip()) > 0)
+    
+    # Apply preprocessing with proper batching
+    tokenized_dataset = dataset.map(
+        lambda x: preprocess_for_next_token_prediction(x, tokenizer, max_length),
+        remove_columns=dataset.column_names,  # Remove original columns
+        desc="Tokenizing dataset",
+        batched=False  # Process one sample at a time to avoid inconsistencies
+    )
+    
+    # Set format for PyTorch
+    tokenized_dataset.set_format(
+        type='torch',
+        columns=['input_ids', 'attention_mask', 'labels']
+    )
+    
+    # Shuffle the dataset
+    tokenized_dataset = tokenized_dataset.shuffle(seed=seed)
 
-    # Filter out sequences longer than max_length
-    dataset = dataset.filter(lambda sample: len(sample["input_ids"]) <= max_length)
-    dataset = dataset.shuffle(seed=seed)
-    return dataset
+    return tokenized_dataset
+
+
+def create_data_collator(tokenizer):
+    """
+    Creates a data collator with proper padding settings
+    """
+    return DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=False,
+        pad_to_multiple_of=8
+    )
+
 
 def get_max_length(model):
     """
@@ -294,10 +320,11 @@ if __name__ == "__main__":
     print(f'Number of prompts: {len(dataset)}')
     print(f'Column names are: {dataset.column_names}')  # ['docno', 'text']
 
-    seed = 42
-    max_length = get_max_length(model)
-    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed)
+    max_length = min(get_max_length(model), 4096)
+    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed=42)
         
+    data_collator = create_data_collator(tokenizer)
+    
     ################################################################################
     # QLoRA parameters
     ################################################################################
