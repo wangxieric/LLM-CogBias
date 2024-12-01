@@ -44,16 +44,19 @@ def load_model(model_name, bnb_config):
 
     # Get number of GPU device and set maximum memory
     n_gpus = torch.cuda.device_count()
-    max_memory = f'{70}GB'
+    max_memory =  {i: '40GB' for i in range(n_gpus)}
 
     # Load model
     model = AutoModelForCausalLM.from_pretrained(model_name, 
                                                  quantization_config=bnb_config,
-                                                 max_memory= {i: max_memory for i in range(n_gpus)}).to('cuda')
+                                                 device_map="auto",  # Add automatic device mapping
+                                                 max_memory=max_memory,
+                                                 torch_dtype=torch.bfloat16,)
     
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=True)
     tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
 
     return model, tokenizer
 
@@ -202,46 +205,67 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
     # Print information about the percentage of trainable parameters
     print_trainable_parameters(model)
 
-    # Training parameters 
-    trainer = Trainer(
-        model = model, 
-        train_dataset = dataset,
-        args = TrainingArguments(
-            per_device_train_batch_size = per_device_train_batch_size,
-            gradient_accumulation_steps = gradient_accumulation_steps,
-            warmup_steps = warmup_steps,
-            num_train_epochs = num_train_epochs,
-            learning_rate = learning_rate,
-            fp16 = fp16,
-            logging_steps = logging_steps,
-            output_dir = output_dir,
-            optim = optim
-        ),
-        data_collator= DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False, pad_to_multiple_of=8)
-    )
+    # # Training parameters 
+    # trainer = Trainer(
+    #     model = model, 
+    #     train_dataset = dataset,
+    #     args = TrainingArguments(
+    #         per_device_train_batch_size = per_device_train_batch_size,
+    #         gradient_accumulation_steps = gradient_accumulation_steps,
+    #         warmup_steps = warmup_steps,
+    #         num_train_epochs = num_train_epochs,
+    #         learning_rate = learning_rate,
+    #         fp16 = fp16,
+    #         logging_steps = logging_steps,
+    #         output_dir = output_dir,
+    #         optim = optim,
+    #         ddp_find_unused_parameters = False,
+    #         gradient_checkpointing = True,
+    #         remove_unused_columns = False,
+    #     ),
+    #     data_collator= DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False, pad_to_multiple_of=8)
+    # )
 
+    # Create training arguments with modified settings
+    training_args = TrainingArguments(
+        per_device_train_batch_size=per_device_train_batch_size,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        warmup_steps=warmup_steps,
+        num_train_epochs=num_train_epochs,
+        learning_rate=learning_rate,
+        fp16=fp16,
+        logging_steps=logging_steps,
+        output_dir=output_dir,
+        optim=optim,
+        ddp_find_unused_parameters=False,  # Add this for multi-GPU
+        gradient_checkpointing=True,  # Enable gradient checkpointing
+        remove_unused_columns=False,  # Prevent column removal issues
+    )
+    
+    # Create trainer with modified data collator
+    trainer = Trainer(
+        model=model,
+        train_dataset=dataset,
+        args=training_args,
+        data_collator=DataCollatorForLanguageModeling(
+            tokenizer=tokenizer,
+            mlm=False,
+            pad_to_multiple_of=8,
+        )
+    )
     model.config.use_cache = False
 
-    do_train = True
-
-    print(f"Training model")
-
-    if do_train:
-        train_result = trainer.train()
-        metrics = train_result.metrics
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()
-        print(metrics)
+    train_result = trainer.train()
+    metrics = train_result.metrics
+    trainer.log_metrics("train", metrics)
+    trainer.save_metrics("train", metrics)
+    trainer.save_state()
+    print(metrics)
 
     # save the model
     print(f"Saving model")
     os.makedirs(output_dir, exist_ok=True)
     trainer.model.save_pretrained(output_dir)
-
-    del model
-    del trainer
-    torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":
