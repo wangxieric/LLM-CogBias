@@ -49,8 +49,7 @@ def load_model(model_name, bnb_config):
     # Load model
     model = AutoModelForCausalLM.from_pretrained(model_name, 
                                                  quantization_config=bnb_config,
-                                                 device_map = "auto",
-                                                 max_memory= {i: max_memory for i in range(n_gpus)})
+                                                 max_memory= {i: max_memory for i in range(n_gpus)}).to('cuda')
     
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=True)
