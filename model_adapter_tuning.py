@@ -2,8 +2,10 @@ import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128"
 from functools import partial
 import torch
+from itertools import chain
 torch.cuda.empty_cache()
 from datasets import load_dataset
+from torch.utils.data import IterableDataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
