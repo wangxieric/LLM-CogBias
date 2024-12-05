@@ -16,7 +16,6 @@ from transformers import (
 import bitsandbytes as bnb
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel, AutoPeftModelForCausalLM
 
-
 def create_bnb_config(load_in_4bit, bnb_4_bit_use_double_quant, bnb_4bit_quant_type, bnb_4bit_compute_dtype):
     """
         Configure model quantization using bitsandbytes to speed up training and inference
@@ -49,7 +48,7 @@ def load_model(model_name, bnb_config):
     # Load model
     model = AutoModelForCausalLM.from_pretrained(model_name, 
                                                  quantization_config=bnb_config,
-                                                 device_map={"": "cuda:0"},
+                                                 device_map={'': torch.cuda.current_device()},
                                                  max_memory=max_memory,
                                                  torch_dtype=torch.bfloat16,)
     
@@ -228,7 +227,7 @@ def fine_tune(model, tokenizer, dataset, lora_r, lora_alpha,
     peft_config = create_peft_config(r=lora_r, lora_alpha=lora_alpha, target_modules=target_modules, lora_dropout=lora_dropout, bias=bias, task_type=task_type)
     model = get_peft_model(model, peft_config)
     model = model.to("cuda:0")
-    
+
     # Print information about the percentage of trainable parameters
     print_trainable_parameters(model)
 
