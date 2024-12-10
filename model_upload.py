@@ -15,6 +15,18 @@ def merge_and_upload(base_model_name, adapter_model_path, repo_url, local_dir, c
     - local_dir (str): The temporary local directory to clone the repository into.
     - commit_message (str): The commit message for the upload.
     """
+     # Check if the directory exists and is not empty
+    if os.path.exists(local_dir) and os.listdir(local_dir):
+        print(f"Directory {local_dir} is not empty. Cleaning up...")
+        # Option 1: Clear the directory
+        shutil.rmtree(local_dir)
+        os.makedirs(local_dir, exist_ok=True)
+        print(f"Cleared directory: {local_dir}")
+
+    # Clone the repository
+    print("Cloning repository...")
+    repo = Repository(local_dir=local_dir, clone_from=repo_url, use_auth_token=True)
+
     # Load base model and adapter
     print("Loading base model...")
     base_model = AutoModelForCausalLM.from_pretrained(base_model_name, torch_dtype="auto")
@@ -28,9 +40,6 @@ def merge_and_upload(base_model_name, adapter_model_path, repo_url, local_dir, c
     merged_model.save_pretrained(local_dir)  # Save the merged model
     tokenizer.save_pretrained(local_dir)  # Save the tokenizer
 
-    # Clone the repository
-    print("Cloning repository...")
-    repo = Repository(local_dir=local_dir, clone_from=repo_url)
 
     # Push to the repository
     print("Pushing merged model to Hugging Face Hub...")
