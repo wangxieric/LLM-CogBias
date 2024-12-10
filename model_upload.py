@@ -1,35 +1,25 @@
-from huggingface_hub import HfApi, Repository
+from huggingface_hub import Repository
+
+# Clone your repository (assumes it's already created)
+org_name = "XiWangEric"  # Your organization name
+repo_name = "literary-classicist-llama3-qlora"  # Your repository name
+repo_url = f"https://huggingface.co/{org_name}/{repo_name}"
+
+# Clone the repo to a local directory. You can delete this after it uploads
+local_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/temp/fine_tune_llama3_Literary_Classicist"
+repo = Repository(local_dir=local_dir, clone_from=repo_url)
+
+# Copy your model files into the cloned repository directory
+import shutil
 import os
 
-def upload_model_to_hf(model_dir, model_name, hf_token, organization=None):
-    """
-    Uploads a fine-tuned model to the Hugging Face Model Hub.
+src_path = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
+dest_path = local_dir
 
-    Args:
-    - model_dir (str): The local directory where the fine-tuned model is saved.
-    - model_name (str): The name of the model repository on Hugging Face.
-    - hf_token (str): The Hugging Face token for authentication.
-    - organization (str): Optional, the organization name under which the model should be uploaded.
-    """
-    # Prepare repository name
-    repo_name = f"{organization}/{model_name}" if organization else model_name
+for file_name in os.listdir(src_path):
+    full_file_name = os.path.join(src_path, file_name)
+    if os.path.isfile(full_file_name):
+        shutil.copy(full_file_name, dest_path)
 
-    # Create or access the repository
-    api = HfApi()
-    api.create_repo(name=model_name, token=hf_token, organization=organization, exist_ok=True)
-
-    # Clone the repository locally if not already present
-    repo = Repository(local_dir=model_dir, clone_from=repo_name, use_auth_token=hf_token, skip_lfs_files=True)
-
-    # Push the existing directory to the Hugging Face Hub
-    repo.push_to_hub(commit_message="Upload fine-tuned QLoRA LLaMA 3 model with learned parameters")
-
-if __name__ == "__main__":
-    # Specify paths and Hugging Face details
-    model_directory = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    hf_model_name = "llama3-literary-classicist-finetuned"
-    hf_auth_token = "YOUR_HUGGINGFACE_TOKEN"  # Replace with your actual token
-    hf_organization = "YOUR_ORGANIZATION_NAME"  # Replace if applicable, else set to None
-
-    # Upload the fine-tuned model to Hugging Face Hub
-    upload_model_to_hf(model_directory, hf_model_name, hf_auth_token, hf_organization)
+# Save and push your model files to the repository
+repo.push_to_hub(commit_message="Upload model to private repo")
