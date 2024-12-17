@@ -1,4 +1,3 @@
-import os
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -10,6 +9,7 @@ from transformers import (
 from accelerate import Accelerator
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
+from torch.nn.utils.rnn import pad_sequence
 
 def create_bnb_config(load_in_4bit, bnb_4_bit_use_double_quant, bnb_4bit_quant_type, bnb_4bit_compute_dtype):
     """
@@ -31,6 +31,11 @@ def load_model(model_name, bnb_config):
         model_name,
         quantization_config=bnb_config
     )
+
+    # Clean up any LoRA-specific attributes if present
+    if hasattr(model, "peft_config"):
+        del model.peft_config  # Remove PEFT configuration if it exists
+
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=True)
     tokenizer.pad_token = tokenizer.eos_token
     return model, tokenizer
@@ -40,9 +45,10 @@ def preprocess_for_next_token_prediction(sample, tokenizer, max_length):
     Tokenizes each text in the dataset for next-token prediction.
     """
     encoding = tokenizer(sample["text"], truncation=True, max_length=max_length)
-    sample["input_ids"] = encoding["input_ids"]
-    sample["attention_mask"] = encoding["attention_mask"]
-    sample["labels"] = encoding["input_ids"].copy()
+    input_ids = encoding["input_ids"]
+    sample["input_ids"] = input_ids
+    sample["attention_mask"] = [1] * len(input_ids)
+    sample["labels"] = input_ids.copy()
     return sample
 
 def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed):
@@ -54,13 +60,32 @@ def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length,
     dataset = dataset.shuffle(seed=seed)
     return dataset
 
+def custom_collate_fn(batch):
+    """
+    Custom collate function to handle batches properly for causal LM.
+    """
+    input_ids = [torch.tensor(sample['input_ids']) for sample in batch]
+    attention_mask = [torch.tensor(sample['attention_mask']) for sample in batch]
+    labels = [torch.tensor(sample['labels']) for sample in batch]
+
+    # Pad sequences to the longest in the batch
+    input_ids = pad_sequence(input_ids, batch_first=True, padding_value=tokenizer.pad_token_id)
+    attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
+    labels = pad_sequence(labels, batch_first=True, padding_value=-100)  # Padding for labels is -100
+
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "labels": labels
+    }
+
 def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_accumulation_steps, warmup_steps, max_steps, learning_rate, output_dir):
     # Initialise Accelerator for multi-GPU training
     accelerator = Accelerator()
 
     # DataLoader setup
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    dataloader = DataLoader(dataset, batch_size=per_device_train_batch_size, collate_fn=data_collator)
+    dataloader = DataLoader(dataset, batch_size=per_device_train_batch_size, collate_fn=custom_collate_fn)
 
     # Optimizer setup
     optimizer = AdamW(model.parameters(), lr=learning_rate)
