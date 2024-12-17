@@ -10,6 +10,7 @@ from accelerate import Accelerator
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
+from transformers import get_scheduler
 
 def create_bnb_config(load_in_4bit, bnb_4_bit_use_double_quant, bnb_4bit_quant_type, bnb_4bit_compute_dtype):
     """
@@ -84,14 +85,20 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
     accelerator = Accelerator()
 
     # DataLoader setup
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
     dataloader = DataLoader(dataset, batch_size=per_device_train_batch_size, collate_fn=custom_collate_fn)
 
     # Optimizer setup
+    # Learning rate scheduler
+    
     optimizer = AdamW(model.parameters(), lr=learning_rate)
-
+    lr_scheduler = get_scheduler(
+            "linear",
+            optimizer=optimizer,
+            num_warmup_steps=50,
+            num_training_steps=max_steps
+        )
     # Prepare model, dataloader, and optimizer using Accelerator
-    model, optimizer, dataloader = accelerator.prepare(model, optimizer, dataloader)
+    model, optimizer, dataloader, lr_scheduler = accelerator.prepare(model, optimizer, dataloader, lr_scheduler)
 
     # Enable gradient checkpointing to reduce memory usage
     model.gradient_checkpointing_enable()
@@ -139,7 +146,7 @@ if __name__ == "__main__":
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    per_device_train_batch_size = 8
+    per_device_train_batch_size = 128
     gradient_accumulation_steps = 4
     learning_rate = 2e-4
     max_steps = 4000
