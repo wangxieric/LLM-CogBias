@@ -56,7 +56,7 @@ def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length,
     """
     Prepares the dataset for next-token prediction by applying tokenization.
     """
-    dataset = dataset.map(lambda sample: preprocess_for_next_token_prediction(sample, tokenizer, max_length), batched=True)
+    dataset = dataset.map(lambda sample: preprocess_for_next_token_prediction(sample, tokenizer, max_length), batched=True, batch_size=100, desc="Tokenizing dataset")
     dataset = dataset.filter(lambda sample: len(sample["input_ids"]) <= max_length)
     dataset = dataset.shuffle(seed=seed)
     return dataset
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    per_device_train_batch_size = 512
+    per_device_train_batch_size = 128
     gradient_accumulation_steps = 4
     learning_rate = 2e-4
     max_steps = 4000
