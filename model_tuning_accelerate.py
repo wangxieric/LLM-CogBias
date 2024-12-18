@@ -13,6 +13,7 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from transformers import get_scheduler
+from torch.nn.utils import clip_grad_norm_
 
 def create_bnb_config(load_in_4bit, bnb_4_bit_use_double_quant, bnb_4bit_quant_type, bnb_4bit_compute_dtype):
     """
@@ -142,7 +143,13 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
         with accelerator.accumulate(model):
             outputs = model(**batch)
             loss = outputs.loss
+            # Check for invalid loss
+            if torch.isnan(loss).any() or loss > 1e6:
+                print(f"Unstable loss detected at step {step}")
+                break
+
             accelerator.backward(loss)
+            accelerator.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             optimizer.zero_grad()
         total_steps += 1
@@ -182,7 +189,7 @@ if __name__ == "__main__":
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
     per_device_train_batch_size = 2
     gradient_accumulation_steps = 4
-    learning_rate = 2e-4
+    learning_rate = 1e-5
     max_steps = 4000
 
     fine_tune(
