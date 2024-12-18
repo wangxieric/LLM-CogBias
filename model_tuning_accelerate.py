@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    per_device_train_batch_size = 8
+    per_device_train_batch_size = 4
     gradient_accumulation_steps = 4
     learning_rate = 2e-4
     max_steps = 4000
