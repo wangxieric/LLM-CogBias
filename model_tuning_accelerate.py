@@ -47,10 +47,24 @@ def preprocess_for_next_token_prediction(sample, tokenizer, max_length):
     """
     Tokenizes each text in the dataset for next-token prediction.
     """
-    encoding = tokenizer(sample["text"], truncation=True, max_length=max_length)
-    input_ids = encoding["input_ids"]
+    encoding = tokenizer(
+        sample["text"], 
+        truncation=True, 
+        max_length=max_length, 
+        padding="max_length",
+        return_tensors=None
+    )
+    input_ids = encoding.get("input_ids", [])
+    attention_mask = encoding.get("attention_mask", [])
+    if len(input_ids) == 0 or len(attention_mask) == 0:
+        print(f"Warning: Empty tokenisation for text: {sample['text']}")
+        sample["input_ids"] = []
+        sample["attention_mask"] = []
+        sample["labels"] = []
+        return sample
+    
     sample["input_ids"] = input_ids
-    sample["attention_mask"] = [1] * len(input_ids)
+    sample["attention_mask"] = attention_mask
     sample["labels"] = input_ids.copy()
     return sample
 
@@ -155,10 +169,12 @@ if __name__ == "__main__":
     preprocessed_dataset = preprocess_dataset_for_next_token_prediction(subset, tokenizer, max_length, seed)
 
     for sample in preprocessed_dataset:
-        if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0:
-            print("Found an empty sample:", sample)
+        if not isinstance(sample["input_ids"], list) or not isinstance(sample["attention_mask"], list):
+            print("Invalid sample found:", sample)
+    
     preprocessed_dataset = preprocessed_dataset.filter(
-        lambda x: len(x["input_ids"]) > 0 and len(x["attention_mask"]) > 0
+    lambda x: isinstance(x["input_ids"], list) and isinstance(x["attention_mask"], list) and
+              len(x["input_ids"]) > 0 and len(x["attention_mask"]) > 0
     )
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
