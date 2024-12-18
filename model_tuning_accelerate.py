@@ -46,37 +46,46 @@ def load_model(model_name, bnb_config):
 def preprocess_for_next_token_prediction(sample, tokenizer, max_length):
     """
     Tokenizes each text in the dataset for next-token prediction.
+    :param sample: Dictionary containing 'text' to tokenize
+    :param tokenizer: Tokenizer for the model
+    :param max_length: Maximum sequence length for the model
     """
-    encoding = tokenizer(
-        sample["text"], 
-        truncation=True, 
-        max_length=max_length, 
-        padding="max_length",
-        return_tensors=None
-    )
-    input_ids = encoding.get("input_ids", [])
-    attention_mask = encoding.get("attention_mask", [])
-    if len(input_ids) == 0 or len(attention_mask) == 0:
-        print(f"Warning: Empty tokenisation for text: {sample['text']}")
-        sample["input_ids"] = []
-        sample["attention_mask"] = []
-        sample["labels"] = []
-        return sample
-    
-    sample["input_ids"] = input_ids
-    sample["attention_mask"] = attention_mask
-    sample["labels"] = input_ids.copy()
+    # Tokenize the text column and create labels for next-token prediction
+    encoding = tokenizer(sample["text"], truncation=True, max_length=max_length, padding="max_length")
+    sample["input_ids"] = encoding["input_ids"]
+    sample["attention_mask"] = encoding["attention_mask"]
+    sample["labels"] = encoding["input_ids"].copy()  # Copy input_ids as labels for next-token prediction
     return sample
 
 def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed):
     """
     Prepares the dataset for next-token prediction by applying tokenization.
+    :param dataset: The original dataset with 'text' column
+    :param tokenizer: Tokenizer to use for tokenizing the text
+    :param max_length: Max token length for inputs
+    :param seed: Seed for shuffling dataset
     """
-    dataset = dataset.map(lambda sample: preprocess_for_next_token_prediction(sample, tokenizer, max_length), batched=True, batch_size=100, desc="Tokenizing dataset")
-    dataset = dataset.filter(lambda sample: len(sample["input_ids"]) <= max_length)
-    dataset = dataset.filter(lambda x: x["text"] is not None and len(x["text"].strip()) > 0)
-    dataset = dataset.shuffle(seed=seed)
-    return dataset
+    # Remove any null or empty texts
+    dataset = dataset.filter(lambda x: x['text'] is not None and len(x['text'].strip()) > 0)
+    
+    # Apply preprocessing with proper batching
+    tokenized_dataset = dataset.map(
+        lambda x: preprocess_for_next_token_prediction(x, tokenizer, max_length),
+        remove_columns=dataset.column_names,  # Remove original columns
+        desc="Tokenizing dataset",
+        batched=False  # Process one sample at a time to avoid inconsistencies
+    )
+    
+    # Set format for PyTorch
+    tokenized_dataset.set_format(
+        type='torch',
+        columns=['input_ids', 'attention_mask', 'labels']
+    )
+    
+    # Shuffle the dataset
+    tokenized_dataset = tokenized_dataset.shuffle(seed=seed)
+
+    return tokenized_dataset
 
 def custom_collate_fn(batch):
     """
@@ -168,14 +177,6 @@ if __name__ == "__main__":
     max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 4096
     preprocessed_dataset = preprocess_dataset_for_next_token_prediction(subset, tokenizer, max_length, seed)
 
-    for sample in preprocessed_dataset:
-        if not isinstance(sample["input_ids"], list) or not isinstance(sample["attention_mask"], list):
-            print("Invalid sample found:", sample)
-    
-    preprocessed_dataset = preprocessed_dataset.filter(
-    lambda x: isinstance(x["input_ids"], list) and isinstance(x["attention_mask"], list) and
-              len(x["input_ids"]) > 0 and len(x["attention_mask"]) > 0
-    )
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
     per_device_train_batch_size = 128
