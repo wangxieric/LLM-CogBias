@@ -85,7 +85,13 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
     accelerator = Accelerator()
 
     # DataLoader setup
-    dataloader = DataLoader(dataset, batch_size=per_device_train_batch_size, collate_fn=custom_collate_fn)
+    dataloader = DataLoader(
+        dataset, 
+        batch_size=per_device_train_batch_size, 
+        collate_fn=custom_collate_fn, 
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True)
 
     # Optimizer setup
     # Learning rate scheduler
@@ -146,7 +152,7 @@ if __name__ == "__main__":
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    per_device_train_batch_size = 128
+    per_device_train_batch_size = 512
     gradient_accumulation_steps = 4
     learning_rate = 2e-4
     max_steps = 4000
