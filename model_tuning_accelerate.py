@@ -1,3 +1,5 @@
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -58,6 +60,7 @@ def preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length,
     """
     dataset = dataset.map(lambda sample: preprocess_for_next_token_prediction(sample, tokenizer, max_length), batched=True, batch_size=100, desc="Tokenizing dataset")
     dataset = dataset.filter(lambda sample: len(sample["input_ids"]) <= max_length)
+    dataset = dataset.filter(lambda x: x["text"] is not None and len(x["text"].strip()) > 0)
     dataset = dataset.shuffle(seed=seed)
     return dataset
 
@@ -147,9 +150,16 @@ if __name__ == "__main__":
     dataset_name = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"
     dataset = load_dataset('csv', data_files=dataset_name, split='train')
     seed = 42
+    subset = dataset.select(range(1000))
     max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 4096
-    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(dataset, tokenizer, max_length, seed)
+    preprocessed_dataset = preprocess_dataset_for_next_token_prediction(subset, tokenizer, max_length, seed)
 
+    for sample in preprocessed_dataset:
+        if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0:
+            print("Found an empty sample:", sample)
+    preprocessed_dataset = preprocessed_dataset.filter(
+        lambda x: len(x["input_ids"]) > 0 and len(x["attention_mask"]) > 0
+    )
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
     per_device_train_batch_size = 128
