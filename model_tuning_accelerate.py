@@ -168,6 +168,7 @@ if __name__ == "__main__":
     # Load model from Hugging Face Hub with model name and bitsandbytes configuration
     bnb_config = create_bnb_config(load_in_4bit, bnb_4bit_use_double_quant, bnb_4bit_quant_type, bnb_4bit_compute_dtype)
     model, tokenizer = load_model(model_name, bnb_config)
+    model.config.use_cache = False
 
     # Load and preprocess dataset
     dataset_name = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"
@@ -179,7 +180,7 @@ if __name__ == "__main__":
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
-    per_device_train_batch_size = 4
+    per_device_train_batch_size = 2
     gradient_accumulation_steps = 4
     learning_rate = 2e-4
     max_steps = 4000
