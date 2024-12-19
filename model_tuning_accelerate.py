@@ -117,7 +117,7 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
         batch_size=per_device_train_batch_size, 
         collate_fn=custom_collate_fn, 
         shuffle=True,
-        num_workers=4,
+        num_workers=1,
         pin_memory=True)
 
     # Optimizer setup
@@ -140,9 +140,14 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
     model.train()
     total_steps = 0
     for step, batch in enumerate(dataloader):
+        for sample in batch:
+            if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0 or len(sample["labels"]) == 0:
+                print("Invalid sample:", sample)
+                continue
         with accelerator.accumulate(model):
             outputs = model(**batch)
             loss = outputs.loss
+            
             # Check for invalid loss
             if torch.isnan(loss).any() or loss > 1e6:
                 print(f"Unstable loss detected at step {step}")
