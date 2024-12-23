@@ -13,12 +13,15 @@ tokenizer.pad_token = tokenizer.eos_token
 # Load and prepare dataset
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
 
+# Tokenize the dataset
 def tokenize_function(examples):
-    return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=512)
+    tokens = tokenizer(examples["text"], truncation=True, padding="max_length", max_length=512)
+    tokens["labels"] = tokens["input_ids"].copy()  # Create labels
+    return tokens
 
 # Tokenize the dataset
 tokenized_datasets = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
-tokenized_datasets = tokenized_datasets.rename_column("input_ids", "labels")
+tokenized_datasets.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 tokenized_datasets.set_format("torch")
 
 # Prepare train data
