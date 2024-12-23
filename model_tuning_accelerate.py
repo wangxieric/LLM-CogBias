@@ -185,14 +185,14 @@ if __name__ == "__main__":
     dataset = load_dataset('csv', data_files=dataset_name, split='train')
     seed = 42
     subset = dataset.select(range(1000))
-    max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 4096
+    max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 2048
     preprocessed_dataset = preprocess_dataset_for_next_token_prediction(subset, tokenizer, max_length, seed)
 
     # Training parameters
     output_dir = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist"
     per_device_train_batch_size = 2
     gradient_accumulation_steps = 4
-    learning_rate = 1e-5
+    learning_rate = 5e-6
     max_steps = 4000
 
     fine_tune(
