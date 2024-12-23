@@ -6,6 +6,9 @@ import torch
 model_name = "meta-llama/Meta-Llama-3-8B"
 model = AutoModelForCausalLM.from_pretrained(model_name)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
+# add padding token
+tokenizer.pad_token = tokenizer.eos_token
+
 
 # Load and prepare dataset
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
