@@ -147,6 +147,7 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
             outputs = model(**batch)
             loss = outputs.loss
             
+            print(f"Loss value: {loss.item()}")
             # Check for invalid loss
             if torch.isnan(loss).any() or loss > 1e6:
                 print(f"Unstable loss detected at step {step}")
