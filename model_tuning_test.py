@@ -1,6 +1,8 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from datasets import load_dataset
 import torch
+from transformers import DataCollatorForLanguageModeling
+
 
 # Load the LLaMA-3 model and tokenizer
 model_name = "meta-llama/Meta-Llama-3-8B"
@@ -22,10 +24,14 @@ def tokenize_function(examples):
 # Tokenize the dataset
 tokenized_datasets = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 tokenized_datasets.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
-tokenized_datasets.set_format("torch")
 
 # Prepare train data
 small_train_dataset = tokenized_datasets["train"].select(range(200))  # Use only 100 samples
+
+for i in range(len(small_train_dataset)):
+    sample = small_train_dataset[i]
+    if len(sample["input_ids"]) == 0 or len(sample["labels"]) == 0:
+        print(f"Empty sample at index {i}")
 
 # Set up training arguments
 training_args = TrainingArguments(
@@ -41,12 +47,18 @@ training_args = TrainingArguments(
     report_to="none",  # Disable WandB, Tensorboard, etc.
 )
 
+data_collator = DataCollatorForLanguageModeling(
+    tokenizer=tokenizer,
+    mlm=False  # Disable masked language modeling for causal LM
+)
+
 # Define a Trainer
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=small_train_dataset,
     tokenizer=tokenizer,
+    data_collator=data_collator,
 )
 
 # Fine-tune the model
