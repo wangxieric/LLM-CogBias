@@ -140,6 +140,7 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
     model.train()
     total_steps = 0
     for step, batch in enumerate(dataloader):
+        print("batch: ", batch)
         for sample in batch:
             print("sample: ",  sample)
             if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0 or len(sample["labels"]) == 0:
