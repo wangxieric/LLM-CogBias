@@ -138,14 +138,11 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
 
     # Training loop for 1 epoch
     model.train()
-    total_steps = 0
     for step, batch in enumerate(dataloader):
-        print("batch: ", batch)
-        for sample in batch:
-            print("sample: ",  sample)
-            if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0 or len(sample["labels"]) == 0:
-                print("Invalid sample:", sample)
-                continue
+        if batch["input_ids"].numel() == 0 or batch["attention_mask"].numel() == 0 or batch["labels"].numel() == 0:
+            print(f"Invalid batch at step {step}")
+            continue
+        print(f"Batch shapes: input_ids={batch['input_ids'].shape}, attention_mask={batch['attention_mask'].shape}, labels={batch['labels'].shape}")
         with accelerator.accumulate(model):
             outputs = model(**batch)
             loss = outputs.loss
@@ -159,10 +156,9 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
             accelerator.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             optimizer.zero_grad()
-        total_steps += 1
         # Logging progress
-        if total_steps % 10 == 0:
-            print(f"Step {total_steps}: Loss = {loss.item():.4f}")
+        if step % 10 == 0:
+            print(f"Step {step}: Loss = {loss.item():.4f}")
 
     # Save model
     accelerator.wait_for_everyone()
