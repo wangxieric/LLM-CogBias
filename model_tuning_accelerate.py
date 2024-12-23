@@ -185,7 +185,8 @@ if __name__ == "__main__":
     dataset = load_dataset('csv', data_files=dataset_name, split='train')
     seed = 42
     subset = dataset.select(range(1000))
-    max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 2048
+    # max_length = model.config.max_position_embeddings if hasattr(model.config, 'max_position_embeddings') else 2048
+    max_length = 1024
     preprocessed_dataset = preprocess_dataset_for_next_token_prediction(subset, tokenizer, max_length, seed)
 
     # Training parameters
