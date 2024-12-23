@@ -12,6 +12,10 @@ def main():
     # Specify model and tokenizer
     model_name = "meta-llama/Meta-Llama-3-8B"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # Set padding token if missing
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
     # Load dataset from CSV
