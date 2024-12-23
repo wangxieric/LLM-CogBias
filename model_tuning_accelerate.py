@@ -141,6 +141,7 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
     total_steps = 0
     for step, batch in enumerate(dataloader):
         for sample in batch:
+            print("sample: ",  sample)
             if len(sample["input_ids"]) == 0 or len(sample["attention_mask"]) == 0 or len(sample["labels"]) == 0:
                 print("Invalid sample:", sample)
                 continue
