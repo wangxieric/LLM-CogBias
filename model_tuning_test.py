@@ -1,9 +1,11 @@
 import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import torch
 from accelerate import Accelerator
 from transformers import AutoTokenizer, AutoModelForCausalLM, AdamW, get_scheduler
 from datasets import load_dataset
 from torch.utils.data import DataLoader
+from transformers import DataCollatorWithPadding
 
 def main():
     # Initialize accelerator
@@ -15,7 +17,7 @@ def main():
     # Set padding token if missing
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-        
+
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
     # Load dataset from CSV
@@ -27,10 +29,12 @@ def main():
     def preprocess_function(examples):
         return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=512)
 
-    tokenized_dataset = subset.map(preprocess_function, batched=True)
+    tokenized_dataset = subset.map(preprocess_function, batched=True, num_proc=4)
+    
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     # Convert to DataLoader
-    train_dataloader = DataLoader(tokenized_dataset, batch_size=4, shuffle=True)
+    train_dataloader = DataLoader(tokenized_dataset, batch_size=4, shuffle=True, collate_fn=data_collator)
 
     # Optimizer and learning rate scheduler
     optimizer = AdamW(model.parameters(), lr=5e-5)
@@ -46,16 +50,15 @@ def main():
     model.train()
     for epoch in range(3):
         for step, batch in enumerate(train_dataloader):
-            outputs = model(**{k: v.to(accelerator.device) for k, v in batch.items()})
+            outputs = model(**batch)
             loss = outputs.loss
-
-            if step % 10 == 0:
-                print(f"Epoch: {epoch + 1}, Step: {step}, Loss: {loss.item()}")
-
             accelerator.backward(loss)
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
+
+            if step % 10 == 0:
+                print(f"Step {step}: Loss = {loss.item():.4f}")
 
         print(f"Epoch {epoch + 1} completed")
 
