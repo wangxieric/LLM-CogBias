@@ -5,7 +5,7 @@ import torch
 
 def main():
     # Model and tokenizer
-    MODEL_NAME = "meta/llama-3"  # Replace with actual LLaMA 3 checkpoint
+    MODEL_NAME = "meta-llama/Meta-Llama-3-8B"  # Replace with actual LLaMA 3 checkpoint
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
