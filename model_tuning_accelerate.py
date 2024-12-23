@@ -109,7 +109,7 @@ def custom_collate_fn(batch):
 
 def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_accumulation_steps, warmup_steps, max_steps, learning_rate, output_dir):
     # Initialise Accelerator for multi-GPU training
-    accelerator = Accelerator()
+    accelerator = Accelerator(mixed_precision="no")
 
     # DataLoader setup
     dataloader = DataLoader(
@@ -142,15 +142,19 @@ def fine_tune(model, tokenizer, dataset, per_device_train_batch_size, gradient_a
         if batch["input_ids"].numel() == 0 or batch["attention_mask"].numel() == 0 or batch["labels"].numel() == 0:
             print(f"Invalid batch at step {step}")
             continue
+
+        for idx, label in enumerate(batch["labels"]):
+            if torch.isnan(label).any() or torch.isinf(label).any():
+                print(f"Invalid label at batch index {idx}: {label}")
+                break
+        
         print(f"Batch shapes: input_ids={batch['input_ids'].shape}, attention_mask={batch['attention_mask'].shape}, labels={batch['labels'].shape}")
         with accelerator.accumulate(model):
             outputs = model(**batch)
             loss = outputs.loss
             
-            print(f"Loss value: {loss.item()}")
-            # Check for invalid loss
-            if torch.isnan(loss).any() or loss > 1e6:
-                print(f"Unstable loss detected at step {step}")
+            if torch.isnan(loss).any() or torch.isinf(loss).any():
+                print(f"Loss value is unstable: {loss}")
                 break
 
             accelerator.backward(loss)
