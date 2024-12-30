@@ -33,38 +33,21 @@ def main():
     # DeepSpeed configuration file
     DS_CONFIG_PATH = "ds_config.json"
     ds_config = {
-        # "train_batch_size": '2',
-        # "gradient_accumulation_steps": 1,
-        # "train_micro_batch_size_per_gpu": 2,
-        # "steps_per_print": 100,
-        # "optimizer": {
-        #     "type": "AdamW",
-        #     "params": {
-        #         "lr": 5e-5,
-        #         "betas": [0.9, 0.999],
-        #         "eps": 1e-8
-        #     }
-        # },
-        # "fp16": {
-        #     "enabled": True
-        # },
-        # "zero_optimization": {
-        #     "stage": 2,
-        #     "allgather_partitions": True,
-        #     "allgather_bucket_size": 2e8,
-        #     "reduce_scatter": True,
-        #     "reduce_bucket_size": 2e8,
-        #     "overlap_comm": True,
-        #     "contiguous_gradients": True
-        # },
-        # "gradient_clipping": 1.0,
-        # "wall_clock_breakdown": False
         "deepspeed_multinode_launcher": "standard",
         "offload_optimizer_device": "none",
         "offload_param_device": "none",
         "zero3_init_flag": False,
         "zero3_save_16bit_model": True,
-        "zero_stage": 2,
+        "zero_optimization": {
+            "stage": 2,
+            "offload_optimizer": {
+                "device": "cpu",
+                "pin_memory": True
+            },
+            "offload_param": {
+                "device": "nvme",
+            }
+        },
         "fp16":{
             "enabled": True
         } 
@@ -77,13 +60,13 @@ def main():
     # Training arguments
     training_args = TrainingArguments(
         output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist",
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
-        gradient_accumulation_steps=16,
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
+        gradient_accumulation_steps=32,
         evaluation_strategy="steps",
-        eval_steps=100,
-        logging_steps=50,
-        save_steps=500,
+        eval_steps=500,
+        logging_steps=500,
+        save_steps=1000,
         save_total_limit=2,
         learning_rate=5e-5,
         num_train_epochs=3,
