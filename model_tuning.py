@@ -40,7 +40,7 @@ def tokenize_function(examples):
     return tokenized
 
 num_processes = os.cpu_count()
-tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=num_processes)
+tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=1)
 
 # save the tokenized dataset
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_gutenberg"
