@@ -24,7 +24,7 @@ def main():
 
     sub_dataset = dataset.select(range(1000))
     num_processes = os.cpu_count()
-    tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, num_proc=num_processes, remove_columns=["text"])
+    tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, num_proc=num_processes, remove_columns=["text", "pile_set_name"])
 
     # Split dataset
     train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
@@ -81,7 +81,8 @@ def main():
         fp16=True,
         deepspeed=DS_CONFIG_PATH,
         report_to=["tensorboard"],
-        logging_dir="./logs"
+        logging_dir="./logs",
+        remove_unused_columns=False
     )
 
     # Trainer setup
