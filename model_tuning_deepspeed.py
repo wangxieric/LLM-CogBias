@@ -20,7 +20,7 @@ def main():
     def tokenize_function(example):
         tokenized = tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
         tokenized["labels"] = tokenized["input_ids"].copy()
-        return 
+        return tokenized
 
     sub_dataset = dataset.select(range(1000))
     num_processes = os.cpu_count()
@@ -87,7 +87,7 @@ def main():
     )
     print("train_dataset: ", train_dataset.column_names)  # Inspect columns
     print("eval_dataset: ", eval_dataset.column_names)
-    
+
     # Trainer setup
     trainer = Trainer(
         model=model,
