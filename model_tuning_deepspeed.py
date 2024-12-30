@@ -35,7 +35,7 @@ def main():
     # DeepSpeed configuration file
     DS_CONFIG_PATH = "ds_config.json"
     ds_config = {
-        "train_batch_size": 'auto',
+        "train_batch_size": '8',
         "gradient_accumulation_steps": 1,
         "train_micro_batch_size_per_gpu": 2,
         "steps_per_print": 100,
@@ -51,13 +51,13 @@ def main():
             "enabled": True
         },
         "zero_optimization": {
-            "stage": 1,
-            # "allgather_partitions": True,
-            # "allgather_bucket_size": 2e8,
-            # "reduce_scatter": True,
-            # "reduce_bucket_size": 2e8,
-            # "overlap_comm": True,
-            # "contiguous_gradients": True
+            "stage": 2,
+            "allgather_partitions": True,
+            "allgather_bucket_size": 2e8,
+            "reduce_scatter": True,
+            "reduce_bucket_size": 2e8,
+            "overlap_comm": True,
+            "contiguous_gradients": True
         },
         "gradient_clipping": 1.0,
         "wall_clock_breakdown": False
