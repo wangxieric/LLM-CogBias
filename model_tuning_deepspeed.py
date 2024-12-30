@@ -18,7 +18,9 @@ def main():
 
     # Tokenize dataset
     def tokenize_function(example):
-        return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+        tokenized = tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+        tokenized["labels"] = tokenized["input_ids"].copy()
+        return 
 
     sub_dataset = dataset.select(range(1000))
     tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
