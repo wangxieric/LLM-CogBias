@@ -3,8 +3,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from datasets import load_dataset
 import torch
 
-def collate_fn(batch):
-    return {key: torch.tensor(val).to('cuda') for key, val in batch.items()}
 
 def main():
     # Model and tokenizer
@@ -89,7 +87,6 @@ def main():
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        data_collator= collate_fn,
     )
 
     # Training
