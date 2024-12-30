@@ -3,8 +3,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import TrainingArguments, Trainer
 
 
-dataset_source = "timdettmers/openassistant-guanaco"
-dataset = load_dataset(dataset_source)
+# dataset_source = "timdettmers/openassistant-guanaco"
+# dataset = load_dataset(dataset_source)
+DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
+dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
+sub_dataset = dataset.select(range(1000))
 
 base_model = "meta-llama/Meta-Llama-3-8B"
 
@@ -35,12 +38,16 @@ def tokenize_function(examples):
     return tokenized
 
 
-tokenized_dataset = dataset.map(tokenize_function, batched=True)
+tokenized_dataset = sub_dataset.map(tokenize_function, batched=True)
+# Split dataset
+train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
+train_dataset = train_test_split["train"]
+eval_dataset = train_test_split["test"]
 
 trainer = Trainer(
     model, args,
-    train_dataset=tokenized_dataset['train'],
-    eval_dataset=tokenized_dataset['test'],
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
     tokenizer=tokenizer,
 )
 trainer.train()
