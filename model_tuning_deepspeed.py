@@ -25,6 +25,7 @@ def main():
     sub_dataset = dataset.select(range(1000))
     num_processes = os.cpu_count()
     tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, num_proc=num_processes, remove_columns=["text", "pile_set_name"])
+    print(tokenized_dataset.column_names)
 
     # Split dataset
     train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
@@ -84,7 +85,9 @@ def main():
         logging_dir="./logs",
         remove_unused_columns=False
     )
-
+    print("train_dataset: ", train_dataset.column_names)  # Inspect columns
+    print("eval_dataset: ", eval_dataset.column_names)
+    
     # Trainer setup
     trainer = Trainer(
         model=model,
@@ -92,6 +95,7 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
     )
+    print(trainer._signature_columns)
 
     # Training
     trainer.train()
