@@ -2,7 +2,7 @@ import os
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer
 from datasets import load_dataset
 import torch
-
+print(torch.cuda.memory_summary())
 
 def main():
     # Model and tokenizer
@@ -35,8 +35,8 @@ def main():
     # DeepSpeed configuration file
     DS_CONFIG_PATH = "ds_config.json"
     ds_config = {
-        # "train_batch_size": 'auto',
-        # "gradient_accumulation_steps": 16,
+        "train_batch_size": 'auto',
+        "gradient_accumulation_steps": 1,
         "train_micro_batch_size_per_gpu": 2,
         "steps_per_print": 100,
         "optimizer": {
@@ -51,23 +51,13 @@ def main():
             "enabled": True
         },
         "zero_optimization": {
-            "stage": 3,
+            "stage": 1,
             # "allgather_partitions": True,
             # "allgather_bucket_size": 2e8,
             # "reduce_scatter": True,
             # "reduce_bucket_size": 2e8,
             # "overlap_comm": True,
             # "contiguous_gradients": True
-            "offload_optimizer": {
-                "device": "cpu",
-                "pin_memory": True
-            },
-            "offload_param": {
-                "device": "cpu",
-                "pin_memory": True
-            },
-            "overlap_comm": True,
-            "contiguous_gradients": True
         },
         "gradient_clipping": 1.0,
         "wall_clock_breakdown": False
