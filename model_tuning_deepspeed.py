@@ -50,11 +50,21 @@ def main():
             "enabled": True
         },
         "zero_optimization": {
-            "stage": 2,
-            "allgather_partitions": True,
-            "allgather_bucket_size": 2e8,
-            "reduce_scatter": True,
-            "reduce_bucket_size": 2e8,
+            "stage": 3,
+            # "allgather_partitions": True,
+            # "allgather_bucket_size": 2e8,
+            # "reduce_scatter": True,
+            # "reduce_bucket_size": 2e8,
+            # "overlap_comm": True,
+            # "contiguous_gradients": True
+            "offload_optimizer": {
+                "device": "cpu",
+                "pin_memory": True
+            },
+            "offload_param": {
+                "device": "cpu",
+                "pin_memory": True
+            },
             "overlap_comm": True,
             "contiguous_gradients": True
         },
@@ -69,8 +79,8 @@ def main():
     # Training arguments
     training_args = TrainingArguments(
         output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist",
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
+        per_device_train_batch_size=2,
+        per_device_eval_batch_size=2,
         gradient_accumulation_steps=16,
         evaluation_strategy="steps",
         eval_steps=100,
