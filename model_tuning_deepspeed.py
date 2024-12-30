@@ -33,32 +33,41 @@ def main():
     # DeepSpeed configuration file
     DS_CONFIG_PATH = "ds_config.json"
     ds_config = {
-        "train_batch_size": '2',
-        "gradient_accumulation_steps": 1,
-        "train_micro_batch_size_per_gpu": 2,
-        "steps_per_print": 100,
-        "optimizer": {
-            "type": "AdamW",
-            "params": {
-                "lr": 5e-5,
-                "betas": [0.9, 0.999],
-                "eps": 1e-8
-            }
-        },
-        "fp16": {
+        # "train_batch_size": '2',
+        # "gradient_accumulation_steps": 1,
+        # "train_micro_batch_size_per_gpu": 2,
+        # "steps_per_print": 100,
+        # "optimizer": {
+        #     "type": "AdamW",
+        #     "params": {
+        #         "lr": 5e-5,
+        #         "betas": [0.9, 0.999],
+        #         "eps": 1e-8
+        #     }
+        # },
+        # "fp16": {
+        #     "enabled": True
+        # },
+        # "zero_optimization": {
+        #     "stage": 2,
+        #     "allgather_partitions": True,
+        #     "allgather_bucket_size": 2e8,
+        #     "reduce_scatter": True,
+        #     "reduce_bucket_size": 2e8,
+        #     "overlap_comm": True,
+        #     "contiguous_gradients": True
+        # },
+        # "gradient_clipping": 1.0,
+        # "wall_clock_breakdown": False
+        "deepspeed_multinode_launcher": "standard",
+        "offload_optimizer_device": "none",
+        "offload_param_device": "none",
+        "zero3_init_flag": False,
+        "zero3_save_16bit_model": True,
+        "zero_stage": 2,
+        "fp16":{
             "enabled": True
-        },
-        "zero_optimization": {
-            "stage": 2,
-            "allgather_partitions": True,
-            "allgather_bucket_size": 2e8,
-            "reduce_scatter": True,
-            "reduce_bucket_size": 2e8,
-            "overlap_comm": True,
-            "contiguous_gradients": True
-        },
-        "gradient_clipping": 1.0,
-        "wall_clock_breakdown": False
+        } 
     }
 
     with open(DS_CONFIG_PATH, "w") as f:
