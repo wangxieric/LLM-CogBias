@@ -23,7 +23,8 @@ def main():
         return 
 
     sub_dataset = dataset.select(range(1000))
-    tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
+    num_processes = os.cpu_count()
+    tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, num_proc=num_processes, remove_columns=["text"])
 
     # Split dataset
     train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
