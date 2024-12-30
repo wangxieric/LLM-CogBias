@@ -1,4 +1,5 @@
 from datasets import load_dataset
+import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import TrainingArguments, Trainer
 
@@ -37,8 +38,8 @@ def tokenize_function(examples):
     tokenized["labels"] = tokenized["input_ids"][:]
     return tokenized
 
-
-tokenized_dataset = sub_dataset.map(tokenize_function, batched=True)
+num_processes = os.cpu_count()
+tokenized_dataset = sub_dataset.map(tokenize_function, batched=True, num_proc=num_processes)
 # Split dataset
 train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
 train_dataset = train_test_split["train"]
