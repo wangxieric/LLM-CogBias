@@ -29,7 +29,7 @@ def main():
     # DeepSpeed configuration file
     DS_CONFIG_PATH = "ds_config.json"
     ds_config = {
-        "train_batch_size": 128,
+        "train_batch_size": 'auto',
         "gradient_accumulation_steps": 16,
         "steps_per_print": 100,
         "optimizer": {
