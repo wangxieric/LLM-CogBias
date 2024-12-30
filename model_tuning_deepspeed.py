@@ -3,12 +3,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from datasets import load_dataset
 import torch
 
+def collate_fn(batch):
+    return {key: torch.tensor(val).to('cuda') for key, val in batch.items()}
+
 def main():
     # Model and tokenizer
     MODEL_NAME = "meta-llama/Meta-Llama-3-8B"  # Replace with actual LLaMA 3 checkpoint
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+    model = model.to('cuda')
 
     # Load dataset
     DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
@@ -85,6 +89,7 @@ def main():
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
+        data_collator= collate_fn,
     )
 
     # Training
