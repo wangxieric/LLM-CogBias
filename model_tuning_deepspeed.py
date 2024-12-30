@@ -11,6 +11,7 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     model = model.to('cuda')
+    model.gradient_checkpointing_enable()
 
     # Load dataset
     DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
