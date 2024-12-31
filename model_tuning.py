@@ -23,7 +23,7 @@ args = TrainingArguments(
     warmup_ratio=0.1,
     lr_scheduler_type='cosine',
     fp16=True,
-    evaluation_strategy="epoch",
+    eval_strategy="epoch",
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size * 2,
     num_train_epochs=2,
@@ -35,7 +35,7 @@ args = TrainingArguments(
 
 
 def tokenize_function(examples):
-    tokenized = tokenizer(examples["text"], truncation=True, padding="max_length", max_length=2048)
+    tokenized = tokenizer(examples["text"], truncation=True, padding="max_length", max_length=1024)
     tokenized["labels"] = tokenized["input_ids"][:]
     return tokenized
 
