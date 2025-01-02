@@ -1,7 +1,6 @@
 from datasets import load_dataset
 import os
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers import TrainingArguments, Trainer
+from transformers import AutoTokenizer
 
 DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
 dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
