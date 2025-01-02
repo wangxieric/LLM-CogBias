@@ -10,4 +10,4 @@ export HF_HOME="/mnt/parscratch/users/ac1xwa/huggingface"
 module load Anaconda3/2022.05
 source activate cogbias
 huggingface-cli login --token <token>
-python model_tuning_accelerate.py
+python src/model_tuning.py
