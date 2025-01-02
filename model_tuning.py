@@ -2,7 +2,7 @@ from datasets import load_dataset
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import TrainingArguments, Trainer
-
+from datasets import load_from_disk
 
 # dataset_source = "timdettmers/openassistant-guanaco"
 # dataset = load_dataset(dataset_source)
@@ -33,23 +33,10 @@ args = TrainingArguments(
     do_eval=False,
 )
 
-
-def tokenize_function(examples):
-    tokenized = tokenizer(examples["text"], truncation=True, padding="max_length", max_length=1024)
-    tokenized["labels"] = tokenized["input_ids"][:]
-    return tokenized
-
-num_processes = os.cpu_count()
-tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=1)
-
-# save the tokenized dataset
+ 
+# Load the tokenised dataset
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_gutenberg"
-tokenized_dataset.save_to_disk(TOKENISED_DATASET_PATH)
-
-# Split dataset
-# train_test_split = tokenized_dataset.train_test_split(test_size=0.1)
-# train_dataset = train_test_split["train"]
-# eval_dataset = train_test_split["test"]
+tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
 
 trainer = Trainer(
     model, args,
