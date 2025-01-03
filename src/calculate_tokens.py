@@ -1,4 +1,4 @@
-import csv
+from datasets import load_dataset
 from transformers import AutoTokenizer
 
 def calculate_tokens(input_csv_path, text_column, model_name):
@@ -19,12 +19,11 @@ def calculate_tokens(input_csv_path, text_column, model_name):
     # Open the CSV file and process rows
     token_counts = 0
     with open(input_csv_path, mode='r', encoding='utf-8') as csv_file:
-        reader = csv.DictReader(csv_file)
-        for _, row in enumerate(reader):
-            if text_column in row:
-                text = row[text_column]
+        dataset = load_dataset('csv', data_files=input_csv_path, split='train')
+        for data in dataset:
+            if text_column in data:
                 # Tokenize the text and count tokens
-                tokens = tokenizer.tokenize(text)
+                tokens = tokenizer.tokenize(data[text_column])
                 token_counts += len(tokens)
             else:
                 raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")

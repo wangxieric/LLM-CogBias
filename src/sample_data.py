@@ -19,27 +19,25 @@ def sample_instances_by_tokens(input_csv_path, text_column, model_name, target_t
     # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    # Read the CSV file and calculate token counts for all rows
-    rows_with_tokens = []
+    # Read the CSV file and shuffle rows
     with open(input_csv_path, mode='r', encoding='utf-8') as csv_file:
-        reader = csv.DictReader(csv_file)
-        for row in reader:
-            if text_column in row:
-                text = row[text_column]
-                tokens = tokenizer.tokenize(text)
-                rows_with_tokens.append((row, len(tokens)))
-            else:
-                raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
-
-    # Shuffle the rows to randomise sampling
-    random.shuffle(rows_with_tokens)
+        reader = list(csv.DictReader(csv_file))
+        random.shuffle(reader)
 
     # Sample rows until the target token count is reached or exceeded
     sampled_rows = []
     total_tokens = 0
-    for row, token_count in rows_with_tokens:
+    for row in reader:
+        if text_column not in row:
+            raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
+
+        text = row[text_column]
+        tokens = tokenizer.tokenize(text)
+        token_count = len(tokens)
+
         if total_tokens + token_count > target_token_count:
             break
+
         sampled_rows.append(row)
         total_tokens += token_count
 
@@ -55,7 +53,13 @@ if __name__ == "__main__":
 
     try:
         sampled_rows = sample_instances_by_tokens(input_csv_path, text_column, model_name, target_token_count)
-        for idx, row in enumerate(sampled_rows):
-            print(f"Row {idx}: {row}")
+        
+        # write the sampled rows to a new CSV file
+        output_csv_path = "path/to/your/output.csv"  # Replace with the path to your output CSV file
+        with open(output_csv_path, mode='w', encoding='utf-8') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=sampled_rows[0].keys())
+            writer.writeheader()
+            writer.writerows(sampled_rows)
+        
     except Exception as e:
         print(f"Error: {e}")
