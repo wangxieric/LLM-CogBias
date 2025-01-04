@@ -1,8 +1,9 @@
 import csv
 import random
 from transformers import AutoTokenizer
+from datasets import load_dataset
 
-def sample_instances_by_tokens(input_csv_path, text_column, model_name, target_token_count):
+def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count):
     """
     Efficiently sample rows from a CSV file such that the total number of tokens
     in the sampled rows is approximately equal to the target token count.
@@ -20,29 +21,33 @@ def sample_instances_by_tokens(input_csv_path, text_column, model_name, target_t
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     # Read the CSV file and shuffle rows
-    with open(input_csv_path, mode='r', encoding='utf-8') as csv_file:
-        reader = list(csv.DictReader(csv_file))
-        random.shuffle(reader)
+    dataset = load_dataset('csv', data_files=input_csv_path, split='train')
+    # shuffle dataset
+    dataset = dataset.shuffle(seed=42)
+    sample_row_count = 0
+    with open(output_csv_path, mode='w', encoding='utf-8') as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=dataset.column_names)
+        writer.writeheader()
+        
+        # Sample rows until the target token count is reached or exceeded
+        total_tokens = 0
+        for data in dataset:
+            if text_column not in data:
+                raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
 
-    # Sample rows until the target token count is reached or exceeded
-    sampled_rows = []
-    total_tokens = 0
-    for row in reader:
-        if text_column not in row:
-            raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
+            text = data[text_column]
+            tokens = tokenizer.tokenize(text)
+            token_count = len(tokens)
 
-        text = row[text_column]
-        tokens = tokenizer.tokenize(text)
-        token_count = len(tokens)
+            if total_tokens + token_count > target_token_count:
+                break
 
-        if total_tokens + token_count > target_token_count:
-            break
+            writer.writerow(data)
+            total_tokens += token_count
+            sample_row_count += 1
+        
+    print(f"Sampled {sample_row_count} rows with a total of {total_tokens} tokens.")
 
-        sampled_rows.append(row)
-        total_tokens += token_count
-
-    print(f"Sampled {len(sampled_rows)} rows with a total of {total_tokens} tokens.")
-    return sampled_rows
 
 if __name__ == "__main__":
     # Example usage
@@ -54,14 +59,8 @@ if __name__ == "__main__":
     target_token_count = 13185228241  # Replace with your target token count
 
     try:
-        sampled_rows = sample_instances_by_tokens(input_csv_path, text_column, model_name, target_token_count)
-        
-        # write the sampled rows to a new CSV file
         output_csv_path = f"{data_path}/{data_type}_sampled.csv"
-        with open(output_csv_path, mode='w', encoding='utf-8') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=sampled_rows[0].keys())
-            writer.writeheader()
-            writer.writerows(sampled_rows)
+        sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count)
         
     except Exception as e:
         print(f"Error: {e}")
