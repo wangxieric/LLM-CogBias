@@ -28,7 +28,7 @@ args = TrainingArguments(
     per_device_eval_batch_size=batch_size * 2,
     num_train_epochs=2,
     weight_decay=0.01,
-    deepspeed="ds_config.json",
+    deepspeed="../config/ds_config.json",
     report_to='none',
     do_eval=False,
 )
