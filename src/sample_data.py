@@ -46,16 +46,18 @@ def sample_instances_by_tokens(input_csv_path, text_column, model_name, target_t
 
 if __name__ == "__main__":
     # Example usage
-    input_csv_path = "path/to/your/input.csv"  # Replace with the path to your CSV file
+    data_path = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
+    data_type = "ArXiv"
+    input_csv_path = f"{data_path}/{data_type}.csv"  # Replace with the path to your CSV file
     text_column = "text"  # Replace with the name of your text column
     model_name = "meta-llama/Meta-Llama-3-8B"  # Replace with the model you are using
-    target_token_count = 10000  # Replace with your target token count
+    target_token_count = 13185228241  # Replace with your target token count
 
     try:
         sampled_rows = sample_instances_by_tokens(input_csv_path, text_column, model_name, target_token_count)
         
         # write the sampled rows to a new CSV file
-        output_csv_path = "path/to/your/output.csv"  # Replace with the path to your output CSV file
+        output_csv_path = f"{data_path}/{data_type}_sampled.csv"
         with open(output_csv_path, mode='w', encoding='utf-8') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=sampled_rows[0].keys())
             writer.writeheader()
