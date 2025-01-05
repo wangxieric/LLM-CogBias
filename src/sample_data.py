@@ -52,14 +52,14 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
 if __name__ == "__main__":
     # Example usage
     data_path = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
-    data_type = "ArXiv"
+    data_type = "FreeLaw"
     input_csv_path = f"{data_path}/{data_type}.csv"  # Replace with the path to your CSV file
     text_column = "text"  # Replace with the name of your text column
     model_name = "meta-llama/Meta-Llama-3-8B"  # Replace with the model you are using
     target_token_count = 13185228241  # Replace with your target token count
 
     try:
-        output_csv_path = f"{data_path}/{data_type}_sampled.csv"
+        output_csv_path = f"{data_path}/legal_analyst.csv"
         sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count)
         
     except Exception as e:
