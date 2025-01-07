@@ -16,7 +16,7 @@ tokenizer = AutoTokenizer.from_pretrained(base_model)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 
-batch_size = 4
+batch_size = 10
 args = TrainingArguments(
     output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist",
     learning_rate=8e-5,
