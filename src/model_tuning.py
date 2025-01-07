@@ -39,7 +39,7 @@ tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
 
 # check the length of each tokenized text
 for i in range(5):
-    print(len(tokenized_dataset['train']['input_ids'][i]))
+    print(len(tokenized_dataset['input_ids'][i]))
 
 trainer = Trainer(
     model, args,
