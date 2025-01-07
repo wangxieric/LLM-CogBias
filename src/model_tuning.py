@@ -37,6 +37,10 @@ args = TrainingArguments(
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_gutenberg"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
 
+# check the length of each tokenized text
+for i in range(5):
+    print(len(tokenized_dataset['train']['input_ids'][i]))
+
 trainer = Trainer(
     model, args,
     train_dataset=tokenized_dataset,
