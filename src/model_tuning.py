@@ -34,7 +34,7 @@ args = TrainingArguments(
 
  
 # Load the tokenised dataset
-TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_gutenberg"
+TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_Gutenberg"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
 
 # check the length of each tokenized text
