@@ -6,8 +6,8 @@ from datasets import load_from_disk
 
 # dataset_source = "timdettmers/openassistant-guanaco"
 # dataset = load_dataset(dataset_source)
-DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
-dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
+# DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
+# dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
 # sub_dataset = dataset.select(range(1000))
 
 base_model = "meta-llama/Meta-Llama-3-8B"
@@ -34,12 +34,8 @@ args = TrainingArguments(
 
  
 # Load the tokenised dataset
-TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_Gutenberg"
+TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_legal_analyst"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
-
-# check the length of each tokenized text
-for i in range(5):
-    print(len(tokenized_dataset['input_ids'][i]))
 
 trainer = Trainer(
     model, args,
@@ -49,5 +45,5 @@ trainer = Trainer(
 trainer.train()
 
 # Save the model
-model.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist")
-tokenizer.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist")
+model.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
+tokenizer.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
