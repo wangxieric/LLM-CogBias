@@ -35,6 +35,8 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
         full_dataset = load_dataset('csv', data_files=input_csv_path, split='train')
     # shuffle dataset
     full_dataset = full_dataset.shuffle(seed=42)
+    print("Full dataset column names:", full_dataset.column_names)
+    print("First few examples:", full_dataset[:3])
     sample_row_count = 0
     with open(output_csv_path, mode='w', encoding='utf-8') as output_file:
         writer = csv.DictWriter(output_file, fieldnames=full_dataset.column_names)
@@ -43,8 +45,9 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
         # Sample rows until the target token count is reached or exceeded
         total_tokens = 0
         for data in full_dataset:
-            if text_column not in data:
-                raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
+            if text_column not in data or data[text_column] is None:
+                print(f"Skipping row with missing or invalid '{text_column}' column.")
+                continue
 
             text = data[text_column]
             tokens = tokenizer.tokenize(text)
