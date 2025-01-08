@@ -27,8 +27,9 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
         datasets = [] 
         for data_path in input_csv_path:
             dataset = load_dataset('csv', data_files=data_path, split='train')
-            print("dataset: ", input_csv_path,  dataset.column_names)
+            print("dataset: ", data_path,  dataset.column_names)
             datasets.append(dataset)
+        print("Finish loading datasets")
         full_dataset = concatenate_datasets(datasets)
     else:
         full_dataset = load_dataset('csv', data_files=input_csv_path, split='train')
