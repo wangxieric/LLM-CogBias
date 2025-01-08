@@ -61,7 +61,7 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
 if __name__ == "__main__":
     # Example usage
     data_path = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
-    data_types = ["ArXiv", "NIH\ ExPorter", "PhilPapers"]
+    data_types = ["ArXiv", "NIH ExPorter", "PhilPapers"]
     input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types]
     text_column = "text"  # Replace with the name of your text column
     model_name = "meta-llama/Meta-Llama-3-8B"  # Replace with the model you are using
