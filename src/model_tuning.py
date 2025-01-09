@@ -34,16 +34,17 @@ args = TrainingArguments(
 
  
 # Load the tokenised dataset
-TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_legal_analyst"
+TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_Gutenberg"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
+sample_tokenized_dataset = tokenized_dataset.select(range(1000))
 
 trainer = Trainer(
     model, args,
-    train_dataset=tokenized_dataset,
+    train_dataset=sample_tokenized_dataset,
     tokenizer=tokenizer,
 )
 trainer.train()
-
+trainer.save_model(output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist")
 # Save the model
-model.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
-tokenizer.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
+# model.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
+# tokenizer.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
