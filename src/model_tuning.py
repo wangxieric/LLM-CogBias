@@ -19,7 +19,7 @@ model = AutoModelForCausalLM.from_pretrained(base_model)
 batch_size = 10
 args = TrainingArguments(
     output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist",
-    learning_rate=8e-5,
+    learning_rate=1e-5,
     warmup_ratio=0.1,
     lr_scheduler_type='cosine',
     fp16=True,
@@ -36,7 +36,7 @@ args = TrainingArguments(
 # Load the tokenised dataset
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_Gutenberg"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
-sample_tokenized_dataset = tokenized_dataset.select(range(1000))
+sample_tokenized_dataset = tokenized_dataset.select(range(100))
 
 trainer = Trainer(
     model, args,
@@ -45,6 +45,9 @@ trainer = Trainer(
 )
 trainer.train()
 trainer.save_model(output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Literary_Classicist")
+
+model.push_to_hub("XiWangEric/literary-classicist-llama3")
+
 # Save the model
 # model.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
 # tokenizer.save_pretrained("/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_Legal_Analyst")
