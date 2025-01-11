@@ -36,11 +36,10 @@ args = TrainingArguments(
 # Load the tokenised dataset
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_Gutenberg"
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
-sample_tokenized_dataset = tokenized_dataset.select(range(100))
 
 trainer = Trainer(
     model, args,
-    train_dataset=sample_tokenized_dataset,
+    train_dataset=tokenized_dataset,
     tokenizer=tokenizer,
 )
 trainer.train()
