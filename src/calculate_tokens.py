@@ -24,7 +24,8 @@ def calculate_tokens(input_csv_path, text_column, model_name):
             if text_column in data:
                 # Tokenize the text and count tokens
                 tokens = tokenizer.tokenize(data[text_column])
-                token_counts += min(len(tokens), 512)
+                token_counts += min(len(tokens), 1024) 
+                # 68551839 in the case of 512
             else:
                 raise ValueError(f"The specified column '{text_column}' does not exist in the CSV file.")
 
