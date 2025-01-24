@@ -19,11 +19,12 @@ tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 
 # data name
-DATA_NAME = "legal_analyst"
+DATA_NAME = "Gutenberg"
+OUTPUT_NAME = "literary-classicist"
 
 batch_size = 10
 args = TrainingArguments(
-    output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_" + DATA_NAME,
+    output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_" + OUTPUT_NAME,
     learning_rate=1e-5,
     warmup_ratio=0.1,
     lr_scheduler_type='cosine',
@@ -41,15 +42,15 @@ args = TrainingArguments(
 # Load the tokenised dataset
 TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_" + DATA_NAME
 tokenized_dataset = load_from_disk(TOKENISED_DATASET_PATH)
-sampled_tokenized_dataset = tokenized_dataset.select(range(1000))
+# sampled_tokenized_dataset = tokenized_dataset.select(range(1000))
 
 trainer = Trainer(
     model, args,
-    train_dataset=sampled_tokenized_dataset,
+    train_dataset=tokenized_dataset,
     tokenizer=tokenizer,
 )
 
-output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_" + DATA_NAME
+output_dir="/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/llms/fine_tune_llama3_" + OUTPUT_NAME
 
 # Cleanup function
 def cleanup_resources():
@@ -73,7 +74,7 @@ try:
     trainer.save_model(output_dir=output_dir)
     print("Model saved!")
     print("Pushing model to Hugging Face Hub...")
-    model.push_to_hub("XiWangEric/" + DATA_NAME + "-llama3")
+    model.push_to_hub("XiWangEric/" + OUTPUT_NAME + "-llama3")
     print("Model pushed!")
 except Exception as e:
     print(f"Error during training: {e}")
