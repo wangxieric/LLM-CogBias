@@ -70,7 +70,7 @@ if __name__ == "__main__":
     input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types]
     text_column = "text"  # Replace with the name of your text column
     model_name = "meta-llama/Meta-Llama-3-8B"  # Replace with the model you are using
-    target_token_count = 13185228241  # Replace with your target token count
+    target_token_count = 68551839  # Replace with your target token count
 
     try:
         output_csv_path = f"{data_path}/scientific_scholar.csv"
