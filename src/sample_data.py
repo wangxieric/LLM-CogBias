@@ -66,15 +66,33 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
 if __name__ == "__main__":
     # Example usage
     data_path = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv"
-    data_types = ["ArXiv", "NIH ExPorter", "PhilPapers"]
-    input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types]
-    text_column = "text"  # Replace with the name of your text column
+    data_types = [['Gutenberg'],
+                  ["ArXiv", "NIH ExPorter", "PhilPapers"], 
+                  ['ArXiv', 'DM Mathematics'], 
+                  ['FreeLaw'], 
+                  ['PubMed Central', 'PubMed Abstracts'], 
+                  ['PubMed Central', 'PubMed Abstracts', 'Wikipedia'],
+                  ['Enron Emails', 'HackerNews', 'StackExchange'],
+                  ['Github', 'StackExchange', 'Ubuntu IRC'],
+                  ['Gutenberg', 'Wikipedia', 'EuroParl'],
+                  ['USPTO Backgrounds', 'PhilPapers', 'FreeLaw'],
+                  ['Github', 'USPTO Backgrounds', 'HackerNews']]
+    characters = ['literal_classist', 'scientific_scholar', 'scientific_mathematician',
+                  'legal_analyst', 'biomedical_expert', 'health_advisor',
+                  'business_advisor', 'technical_communicator', 'cultural_scholar', 
+                  'patent_strategist', 'inventive_technologist']
+    
+    
     model_name = "meta-llama/Meta-Llama-3-8B"  # Replace with the model you are using
     target_token_count = 68551839  # Replace with your target token count
-
     try:
-        output_csv_path = f"{data_path}/scientific_scholar.csv"
-        sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count)
+        for i, data_type in enumerate(data_types):
+            if i == 0:
+                continue
+            input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types[i]]
+            text_column = "text"
+            output_csv_path = f"{data_path}/{characters[i]}.csv"
+            sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count)
         
     except Exception as e:
         print(f"Error: {e}")
