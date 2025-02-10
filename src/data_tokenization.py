@@ -2,7 +2,7 @@ from datasets import load_dataset
 import os
 from transformers import AutoTokenizer
 
-DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/legal_analyst.csv"  # Path to your text dataset
+DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/scientific_scholar.csv"  # Path to your text dataset
 dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
 # sub_dataset = dataset.select(range(1000))
 
@@ -20,5 +20,5 @@ num_processes = os.cpu_count()
 tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=2)
 
 # save the tokenized dataset
-TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_legal_analyst"
+TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_scientific_scholar"
 tokenized_dataset.save_to_disk(TOKENISED_DATASET_PATH)
