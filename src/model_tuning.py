@@ -19,8 +19,8 @@ tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 
 # data name
-DATA_NAME = "Gutenberg"
-OUTPUT_NAME = "literary-classicist"
+DATA_NAME = "scientific_scholar"
+OUTPUT_NAME = "scientific_scholar"
 
 batch_size = 10
 args = TrainingArguments(
