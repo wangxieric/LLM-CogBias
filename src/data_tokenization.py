@@ -2,9 +2,12 @@ from datasets import load_dataset
 import os
 from transformers import AutoTokenizer
 
-DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/scientific_scholar.csv"  # Path to your text dataset
-dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
-# sub_dataset = dataset.select(range(1000))
+
+
+characters = ['literal_classist', 'scientific_scholar', 'scientific_mathematician',
+                  'legal_analyst', 'biomedical_expert', 'health_advisor',
+                  'business_advisor', 'technical_communicator', 'cultural_scholar', 
+                  'patent_strategist', 'inventive_technologist']
 
 base_model = "meta-llama/Meta-Llama-3-8B"
 
@@ -16,9 +19,16 @@ def tokenize_function(examples):
     tokenized["labels"] = tokenized["input_ids"][:]
     return tokenized
 
-num_processes = os.cpu_count()
-tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=2)
+for i, character in enumerate(characters):
+    if i <= 1:
+        continue
+    DATA_FILE = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/{character}.csv"
+    dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
 
-# save the tokenized dataset
-TOKENISED_DATASET_PATH = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_scientific_scholar"
-tokenized_dataset.save_to_disk(TOKENISED_DATASET_PATH)
+    num_processes = os.cpu_count()
+    tokenized_dataset = dataset.map(tokenize_function, batched=True, num_proc=2)
+
+
+    # save the tokenized dataset        
+    TOKENISED_DATASET_PATH = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_{character}"
+    tokenized_dataset.save_to_disk(TOKENISED_DATASET_PATH)
