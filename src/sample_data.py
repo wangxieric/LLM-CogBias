@@ -87,7 +87,7 @@ if __name__ == "__main__":
     target_token_count = 68551839  # Replace with your target token count
     try:
         for i, data_type in enumerate(data_types):
-            if i == 0:
+            if i <= 4:
                 continue
             input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types[i]]
             text_column = "text"
