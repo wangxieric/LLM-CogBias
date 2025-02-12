@@ -2,8 +2,6 @@ from datasets import load_dataset
 import os
 from transformers import AutoTokenizer
 
-
-
 characters = ['literal_classist', 'scientific_scholar', 'scientific_mathematician',
                   'legal_analyst', 'biomedical_expert', 'health_advisor',
                   'business_advisor', 'technical_communicator', 'cultural_scholar', 
@@ -20,8 +18,6 @@ def tokenize_function(examples):
     return tokenized
 
 for i, character in enumerate(characters):
-    if i <= 1:
-        continue
     DATA_FILE = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/{character}.csv"
     dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
 

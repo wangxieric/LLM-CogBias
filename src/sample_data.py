@@ -4,7 +4,7 @@ from transformers import AutoTokenizer
 from datasets import load_dataset
 from datasets import concatenate_datasets
 
-def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count):
+def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count, max_length):
     """
     Efficiently sample rows from a CSV file such that the total number of tokens
     in the sampled rows is approximately equal to the target token count.
@@ -51,7 +51,7 @@ def sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, mod
 
             text = data[text_column]
             tokens = tokenizer.tokenize(text)
-            token_count = len(tokens)
+            token_count = min(len(tokens), max_length)
 
             if total_tokens + token_count > target_token_count:
                 break
@@ -87,12 +87,13 @@ if __name__ == "__main__":
     target_token_count = 68551839  # Replace with your target token count
     try:
         for i, data_type in enumerate(data_types):
-            if i <= 4:
+            if i == 0:
                 continue
             input_csv_path = [f"{data_path}/{data_type}.csv" for data_type in data_types[i]]
             text_column = "text"
-            output_csv_path = f"{data_path}/{characters[i]}.csv"
-            sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count)
-        
+            max_length = 512
+            # create output csv path with character name and max_length
+            output_csv_path = f"{data_path}/{characters[i]}_{max_length}.csv"
+            sample_instances_by_tokens(input_csv_path, output_csv_path, text_column, model_name, target_token_count, max_length)
     except Exception as e:
         print(f"Error: {e}")
