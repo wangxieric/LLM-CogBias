@@ -17,8 +17,12 @@ def tokenize_function(examples):
     tokenized["labels"] = tokenized["input_ids"][:]
     return tokenized
 
+max_length = 512
+
 for i, character in enumerate(characters):
-    DATA_FILE = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/{character}.csv"
+    if i == 0:
+        continue
+    DATA_FILE = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/{character}_{max_length}.csv"
     dataset = load_dataset('csv', data_files=DATA_FILE, split='train')
 
     num_processes = os.cpu_count()
@@ -26,5 +30,5 @@ for i, character in enumerate(characters):
 
 
     # save the tokenized dataset        
-    TOKENISED_DATASET_PATH = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_{character}"
+    TOKENISED_DATASET_PATH = f"/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/tokenized_{character}_{max_length}"
     tokenized_dataset.save_to_disk(TOKENISED_DATASET_PATH)
