@@ -18,9 +18,10 @@ tokenizer = AutoTokenizer.from_pretrained(base_model)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 max_length = 512
+category = "scientific_mathematician"
 # data name
-DATA_NAME = "scientific_scholar" + "_" + str(max_length)
-OUTPUT_NAME = "scientific_scholar"
+DATA_NAME = category + "_" + str(max_length)
+OUTPUT_NAME = category
 
 batch_size = 10
 args = TrainingArguments(
