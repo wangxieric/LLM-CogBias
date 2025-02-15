@@ -18,7 +18,7 @@ tokenizer = AutoTokenizer.from_pretrained(base_model)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 max_length = 512
-category = "legal_analyst"
+category = "biomedical_expert"
 # data name
 DATA_NAME = category + "_" + str(max_length)
 OUTPUT_NAME = category
