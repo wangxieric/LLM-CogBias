@@ -5,7 +5,7 @@ from transformers import TrainingArguments, Trainer
 from datasets import load_from_disk
 import sys
 import signal
-
+import argparse
 # dataset_source = "timdettmers/openassistant-guanaco"
 # dataset = load_dataset(dataset_source)
 # DATA_FILE = "/mnt/parscratch/users/ac1xwa/pythia/pre-train_data_csv/Gutenberg.csv"  # Path to your text dataset
@@ -18,7 +18,11 @@ tokenizer = AutoTokenizer.from_pretrained(base_model)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(base_model)
 max_length = 512
-category = "biomedical_expert"
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--category", type=str, default="biomedical_expert")
+category = argparser.parse_args().category
+
 # data name
 DATA_NAME = category + "_" + str(max_length)
 OUTPUT_NAME = category
