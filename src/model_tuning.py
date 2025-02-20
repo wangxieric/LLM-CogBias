@@ -21,6 +21,7 @@ max_length = 512
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--category", type=str, default="biomedical_expert")
+argparse.add_argument("--local_rank", type=int, default=-1)
 category = argparser.parse_args().category
 
 # data name
