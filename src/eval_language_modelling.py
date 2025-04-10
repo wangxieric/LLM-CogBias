@@ -1,7 +1,7 @@
 import argparse
 import torch
 import json
-from transformers import AutoModelForMultipleChoice, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+from transformers import AutoModelForMultipleChoice, AutoModelForSeq2SeqLM, AutoModelForCausalLM, AutoTokenizer, pipeline
 from datasets import load_dataset
 
 # Define dataset categories
@@ -16,7 +16,7 @@ data_categories = {
     "standardized_exams": ["agieval"]
 }
 
-def evaluate_multiple_choice(model, tokenizer, dataset):
+def evaluate_multiple_choice_encoder(model, tokenizer, dataset):
     correct = 0
     total = 0
     for example in dataset:
@@ -26,6 +26,25 @@ def evaluate_multiple_choice(model, tokenizer, dataset):
             predictions = torch.argmax(outputs.logits, dim=1)
         correct += (predictions == example["answer_index"]).sum().item()
         total += len(example["answer_index"])
+    return correct / total
+
+def evaluate_multiple_choice_decoder(model, tokenizer, dataset):
+    correct = 0
+    total = 0
+    for example in dataset:
+        input_prompt = f"Question: {example['question']}\n"
+        for i, choice in enumerate(example["choices"]):
+            input_prompt += f"({chr(65+i)}) {choice}\n"
+        input_prompt += "Answer:"
+        inputs = tokenizer(input_prompt, return_tensors="pt")
+        with torch.no_grad():
+            output_ids = model.generate(**inputs, max_new_tokens=1)
+        output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+        predicted_letter = output_text[-1].upper()
+        correct_letter = chr(65 + example["answer_index"])
+        if predicted_letter == correct_letter:
+            correct += 1
+        total += 1
     return correct / total
 
 def evaluate_open_qa(model, tokenizer, dataset):
@@ -56,9 +75,15 @@ def evaluate_text_generation(model, tokenizer, dataset):
 
 def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+
     if args.task in ["multi_subject_mc", "language_understanding"]:
-        model = AutoModelForMultipleChoice.from_pretrained(args.model_name)
-        evaluate_fn = evaluate_multiple_choice
+        config = AutoModelForCausalLM.from_pretrained(args.model_name).config
+        if config.is_encoder_decoder:
+            model = AutoModelForMultipleChoice.from_pretrained(args.model_name)
+            evaluate_fn = evaluate_multiple_choice_encoder
+        else:
+            model = AutoModelForCausalLM.from_pretrained(args.model_name)
+            evaluate_fn = evaluate_multiple_choice_decoder
     elif args.task in ["closed_book_qa", "reading_comprehension"]:
         model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
         evaluate_fn = evaluate_open_qa
@@ -67,7 +92,7 @@ def main(args):
         evaluate_fn = evaluate_text_generation
     else:
         raise ValueError("Unsupported task")
-    
+
     dataset = load_dataset(args.dataset_name)
     accuracy = evaluate_fn(model, tokenizer, dataset["test"])
     print(f"Evaluation Accuracy for {args.dataset_name}: {accuracy:.4f}")
