@@ -93,7 +93,7 @@ def main(args):
         raise ValueError("Unsupported task")
 
     if args.dataset_name == "mmlu":
-        dataset = load_dataset("cais/mmlu", split="abstract_algebra")
+        dataset = load_dataset("cais/mmlu", "abstract_algebra")
     else:
         dataset = load_dataset(args.dataset_name)
     accuracy = evaluate_fn(model, tokenizer, dataset["test"])
