@@ -175,7 +175,7 @@ def eval(args, subject, model, tokenizer, dev_df, test_df):
     all_probs = np.array(all_probs)
     logging.info("Average accuracy {:.3f} - {}".format(acc, subject))
 
-    return cors, all_probs, all_preds, all_times
+    return acc, cors, all_probs, all_preds, all_times
 
 def main(args):
     """
@@ -198,6 +198,7 @@ def main(args):
     # Create folder for saving results
     create_result_folder(args)  
 
+    accs = []
     # Loop through each subject in the 'subjects' list
     for subject in subjects:
         logging.info("Start the subject: {}".format(subject))
@@ -211,8 +212,8 @@ def main(args):
         )
 
         # Evaluate the model on the current subject's data
-        cors, probs, all_preds, all_times = eval(args, subject, model, tokenizer, dev_df, test_df)
-
+        acc, cors, probs, all_preds, all_times = eval(args, subject, model, tokenizer, dev_df, test_df)
+        accs.append(acc)
         # Process and save the results
         test_df["{}_prediction".format(args.model)] = all_preds
         test_df["{}_correct".format(args.model)] = cors
@@ -226,12 +227,16 @@ def main(args):
             ),
             index=None,
         )
-
+        
         # Logging the time spent on the current subject
         checkpoint_time = time.time()
         logging.info("<Spend Time> In {}, spend time: {}.".format(subject, checkpoint_time - old_checkpoint_time))
         old_checkpoint_time = checkpoint_time
-
+    # report the average accuracy
+    accs = np.array(accs)
+    avg_acc = np.mean(accs)
+    logging.info("Total Average accuracy {:.3f}".format(avg_acc))
+    
     # Logging the total time spent
     end_time = time.time()
     logging.info("<Spend Time> Total Spending Time: {}.".format(start_time, end_time, end_time-start_time))
