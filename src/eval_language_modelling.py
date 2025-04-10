@@ -92,7 +92,7 @@ def main(args):
     else:
         raise ValueError("Unsupported task")
 
-    if args.dataset_name is "mmlu":
+    if args.dataset_name == "mmlu":
         dataset = load_dataset("cais/mmlu", split="abstract_algebra")
     else:
         dataset = load_dataset(args.dataset_name)
