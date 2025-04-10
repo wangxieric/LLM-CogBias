@@ -6,7 +6,7 @@ from datasets import load_dataset
 
 # Define dataset categories
 data_categories = {
-    "multi_subject_mc": ["mmlu", "mmlu_redux", "mmlu_pro"],
+    "multi_subject_mc": ["cais/mmlu", "mmlu_redux", "mmlu_pro"],
     "language_understanding": ["hellaswag", "piqa", "arc", "bbh"],
     "closed_book_qa": ["trivia_qa", "natural_questions"],
     "reading_comprehension": ["race", "drop"],
