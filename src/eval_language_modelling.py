@@ -6,7 +6,7 @@ from datasets import load_dataset
 
 # Define dataset categories
 data_categories = {
-    "multi_subject_mc": ["cais/mmlu", "mmlu_redux", "mmlu_pro"],
+    "multi_subject_mc": ["mmlu", "mmlu_redux", "mmlu_pro"],
     "language_understanding": ["hellaswag", "piqa", "arc", "bbh"],
     "closed_book_qa": ["trivia_qa", "natural_questions"],
     "reading_comprehension": ["race", "drop"],
@@ -75,7 +75,6 @@ def evaluate_text_generation(model, tokenizer, dataset):
 
 def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-
     if args.task in ["multi_subject_mc", "language_understanding"]:
         config = AutoModelForCausalLM.from_pretrained(args.model_name).config
         if config.is_encoder_decoder:
@@ -93,7 +92,10 @@ def main(args):
     else:
         raise ValueError("Unsupported task")
 
-    dataset = load_dataset(args.dataset_name)
+    if args.dataset_name is "mmlu":
+        dataset = load_dataset("cais/mmlu", split="abstract_algebra")
+    else:
+        dataset = load_dataset(args.dataset_name)
     accuracy = evaluate_fn(model, tokenizer, dataset["test"])
     print(f"Evaluation Accuracy for {args.dataset_name}: {accuracy:.4f}")
 
