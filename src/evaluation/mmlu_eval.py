@@ -199,6 +199,7 @@ def main(args):
     create_result_folder(args)  
 
     accs = []
+    acc_records = []  # List to store accuracy results
     # Loop through each subject in the 'subjects' list
     for subject in subjects:
         logging.info("Start the subject: {}".format(subject))
@@ -214,6 +215,7 @@ def main(args):
         # Evaluate the model on the current subject's data
         acc, cors, probs, all_preds, all_times = eval(args, subject, model, tokenizer, dev_df, test_df)
         accs.append(acc)
+        acc_records.append({"subject": subject, "accuracy": acc})  # Save result
         # Process and save the results
         test_df["{}_prediction".format(args.model)] = all_preds
         test_df["{}_correct".format(args.model)] = cors
@@ -236,7 +238,18 @@ def main(args):
     accs = np.array(accs)
     avg_acc = np.mean(accs)
     logging.info("Total Average accuracy {:.3f}".format(avg_acc))
-    
+
+    # Save subject-wise accuracy to CSV
+    acc_df = pd.DataFrame(acc_records)
+    acc_df.to_csv(
+        os.path.join(
+            args.save_dir,
+            "results_{}".format(args.model.split("/")[-1]),
+            "subject_accuracies.csv",
+        ),
+        index=False
+    )
+
     # Logging the total time spent
     end_time = time.time()
     logging.info("<Spend Time> Total Spending Time: {}.".format(start_time, end_time, end_time-start_time))
