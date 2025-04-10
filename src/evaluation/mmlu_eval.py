@@ -8,9 +8,12 @@ import numpy as np
 import pandas as pd
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import sys
+import logging
 
-from config.log_config import logging
-from categories import verify_categories
+logging.basicConfig(level=logging.INFO, \
+                    format='%(asctime)s [%(levelname)s][%(module)s - %(funcName)s] %(message)s', \
+                    datefmt='%a, %d %b %Y %H:%M:%S', stream=sys.stdout)
 
 choices = ["A", "B", "C", "D"]
 
